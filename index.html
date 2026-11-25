@@ -1,0 +1,2926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WesBank Fleet Pulse — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#152238; --navy-2:#1D2E4A; --navy-3:#243A5E;
+  --paper:#F2F4F8; --card:#FFFFFF; --line:#E3E7EF; --text-dim:#69707E;
+  --blue:#2F6FED; --blue-dim:#E7EFFE;
+  --orange:#F08A24; --orange-dim:#FEEEDC;
+  --green:#1DA35D; --green-dim:#DFF4E9;
+  --grey-pill:#EDEFF4; --grey-pill-text:#535B6B;
+  --red:#E5484D; --red-dim:#FCE4E4;
+  --radius:12px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:var(--paper);color:var(--navy);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+button,input,textarea,select{font-family:inherit;}
+a{color:inherit;text-decoration:none;}
+button{cursor:pointer;}
+button:focus-visible,input:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+.screen{display:none;}
+.screen.active{display:block;}
+.hidden{display:none !important;}
+
+/* ============ Brand ============ */
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.brand-mark svg{display:block;}
+.brand-title{font-weight:800;font-size:1rem;line-height:1.15;}
+.brand-sub{font-size:0.68rem;color:var(--text-dim);letter-spacing:0.3px;}
+
+/* ============ Icons ============ */
+.i{width:18px;height:18px;flex-shrink:0;}
+
+/* ============ LOGIN ============ */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,var(--navy) 0%, var(--navy-2) 60%, var(--navy-3) 100%);padding:20px;}
+.login-card{background:var(--card);width:100%;max-width:380px;border-radius:16px;padding:30px 28px;box-shadow:0 30px 60px rgba(0,0,0,0.35);}
+.login-card .brand{margin-bottom:26px;}
+.login-card .brand-title{font-size:1.15rem;}
+.login-h{font-size:1.25rem;font-weight:800;margin:0 0 2px;}
+.login-sub{font-size:0.84rem;color:var(--text-dim);margin-bottom:20px;}
+.role-toggle{display:flex;background:var(--paper);border-radius:9px;padding:4px;margin-bottom:20px;}
+.role-btn{flex:1;border:none;background:transparent;color:var(--text-dim);font-size:0.78rem;font-weight:700;padding:9px 6px;border-radius:6px;transition:.15s;}
+.role-btn.active{background:var(--navy);color:#fff;}
+.field{margin-bottom:15px;}
+.field label{display:block;font-size:0.72rem;font-weight:700;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px;}
+.field .input-row{position:relative;}
+.field input,.field select,.field textarea{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:11px 12px;font-size:0.9rem;background:var(--paper);color:var(--navy);}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--blue);background:#fff;}
+.field input.err{border-color:var(--red);background:var(--red-dim);}
+.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:0.76rem;color:var(--text-dim);font-weight:700;}
+.login-links{display:flex;justify-content:space-between;font-size:0.78rem;margin:-4px 0 18px;color:var(--text-dim);}
+.login-links a{color:var(--blue);font-weight:600;}
+.btn-block{width:100%;background:var(--blue);color:#fff;border:none;border-radius:9px;padding:12px;font-size:0.9rem;font-weight:700;}
+.btn-block:hover{background:#2559C7;}
+.btn-ghost-block{width:100%;background:transparent;border:1.5px solid var(--line);color:var(--navy);border-radius:9px;padding:10px;font-size:0.8rem;font-weight:700;margin-top:10px;}
+.btn-ghost-block:hover{border-color:var(--blue);color:var(--blue);}
+.login-divider{display:flex;align-items:center;gap:10px;margin:20px 0 4px;font-size:0.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;}
+.login-divider::before,.login-divider::after{content:"";flex:1;height:1px;background:var(--line);}
+.login-switch{text-align:center;font-size:0.78rem;color:var(--text-dim);margin-top:16px;}
+.login-switch a{color:var(--blue);font-weight:700;}
+
+.success-banner{background:var(--green-dim);color:#0E5A38;font-size:0.8rem;font-weight:600;padding:10px 12px;border-radius:8px;margin-bottom:16px;display:none;}
+.success-banner.show{display:block;}
+.error-banner{background:var(--red-dim);color:#9F2226;font-size:0.8rem;font-weight:600;padding:10px 12px;border-radius:8px;margin-bottom:16px;display:none;}
+.error-banner.show{display:block;}
+.creds{margin-top:16px;border:1px dashed var(--line);border-radius:9px;overflow:hidden;}
+.creds summary{cursor:pointer;font-size:0.74rem;font-weight:700;color:var(--text-dim);padding:9px 12px;list-style:none;}
+.creds summary::-webkit-details-marker{display:none;}
+.creds summary::before{content:"▸ ";}
+.creds[open] summary::before{content:"▾ ";}
+.creds-body{padding:0 12px 12px;}
+.cred-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:0.72rem;padding:6px 0;border-top:1px solid var(--line);}
+.cred-row .mono{font-size:0.68rem;color:var(--text-dim);}
+.cred-role{display:inline-block;font-size:0.62rem;font-weight:800;padding:3px 8px;border-radius:999px;margin-right:6px;vertical-align:middle;text-transform:uppercase;letter-spacing:.3px;}
+.cred-role.admin{background:var(--navy);color:#fff;}
+.cred-role.driver{background:var(--blue-dim);color:var(--blue);}
+.cred-row button{background:var(--paper);border:1px solid var(--line);border-radius:6px;font-size:0.66rem;font-weight:700;padding:4px 8px;color:var(--navy);white-space:nowrap;}
+.cred-row button:hover{border-color:var(--blue);color:var(--blue);}
+
+/* ============ ADMIN SHELL ============ */
+.admin-shell{display:flex;min-height:100vh;}
+.sidebar{width:246px;background:var(--navy);color:#C9D0DE;display:flex;flex-direction:column;flex-shrink:0;transition:transform .2s ease;}
+.sidebar .brand{padding:20px 18px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.sidebar .brand-title{color:#fff;}
+.nav-list{list-style:none;margin:0;padding:14px 10px;flex:1;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:0.84rem;font-weight:600;color:#B7BFCF;margin-bottom:2px;position:relative;cursor:pointer;}
+.nav-item .i{color:#8792A6;}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:#fff;}
+.nav-item.active{background:var(--navy-3);color:#fff;}
+.nav-item.active .i{color:var(--blue);}
+.nav-item.active::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:3px;background:var(--blue);border-radius:0 3px 3px 0;}
+.nav-badge{margin-left:auto;background:rgba(255,255,255,0.12);color:#fff;font-size:0.66rem;font-weight:700;padding:2px 7px;border-radius:999px;}
+.nav-item.active .nav-badge{background:var(--blue);}
+.sidebar-profile{border-top:1px solid rgba(255,255,255,0.08);padding:14px 16px;display:flex;align-items:center;gap:10px;}
+.sidebar-profile .who{font-size:0.8rem;line-height:1.3;flex:1;}
+.sidebar-profile .who strong{display:block;color:#fff;font-size:0.82rem;}
+.sidebar-profile .who small{color:#8792A6;}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0;}
+
+.admin-main{flex:1;min-width:0;}
+.topbar{background:#fff;border-bottom:1px solid var(--line);padding:14px 26px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:30;}
+.topbar-left{display:flex;align-items:center;gap:14px;}
+.hamburger{background:none;border:none;font-size:1.2rem;color:var(--navy);display:none;}
+.page-title{font-size:1.05rem;font-weight:800;}
+.topbar-right{display:flex;align-items:center;gap:14px;}
+.bell-wrap,.profile-wrap{position:relative;cursor:pointer;color:var(--navy);}
+.bell-wrap .dot{position:absolute;top:-4px;right:-6px;background:var(--red);color:#fff;font-size:0.6rem;font-weight:800;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;}
+.bell-wrap .dot.zero{display:none;}
+.topbar-profile{display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:700;padding:4px 8px 4px 4px;border-radius:999px;border:1px solid transparent;transition:.15s;}
+.topbar-profile:hover,.profile-wrap.open .topbar-profile{border-color:var(--line);background:var(--paper);}
+.topbar-profile .chev{font-size:0.65rem;color:var(--text-dim);transition:.15s;}
+.profile-wrap.open .topbar-profile .chev{transform:rotate(180deg);}
+
+/* Topbar dropdown panels (notifications + account) */
+.dropdown-panel{position:absolute;top:calc(100% + 10px);right:0;width:330px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 44px rgba(15,22,32,0.22);display:none;z-index:50;overflow:hidden;cursor:default;}
+.dropdown-panel.show{display:block;}
+.dropdown-panel .dp-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line);font-size:0.8rem;font-weight:800;}
+.dropdown-panel .dp-head button{background:none;border:none;color:var(--blue);font-size:0.72rem;font-weight:700;}
+.dp-list{max-height:330px;overflow-y:auto;}
+.dp-item{display:flex;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;align-items:flex-start;}
+.dp-item:hover{background:#FAFBFD;}
+.dp-item.unread{background:#F6F9FF;}
+.dp-item .ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.86rem;flex-shrink:0;}
+.dp-item .t{font-size:0.79rem;font-weight:700;}
+.dp-item .s{font-size:0.72rem;color:var(--text-dim);margin-top:1px;}
+.dp-item .w{font-size:0.66rem;color:var(--text-dim);white-space:nowrap;margin-left:auto;}
+.dp-foot{padding:10px 14px;text-align:center;border-top:1px solid var(--line);}
+.dp-foot button{background:none;border:none;color:var(--blue);font-size:0.76rem;font-weight:700;}
+.dp-account{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;}
+.dp-account .who{font-size:0.82rem;line-height:1.35;}
+.dp-account .who strong{display:block;font-size:0.88rem;}
+.dp-account .who small{color:var(--text-dim);font-size:0.74rem;}
+.dp-menu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;padding:12px 16px;font-size:0.84rem;font-weight:600;color:var(--navy);}
+.dp-menu button:hover{background:var(--paper);}
+.dp-menu button.danger{color:var(--red);}
+.dp-menu button.danger:hover{background:var(--red-dim);}
+.amount-cell{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:0.82rem;white-space:nowrap;}
+.time-open{font-size:0.82rem;font-weight:600;white-space:nowrap;}
+.time-open small{display:block;font-size:0.68rem;color:var(--text-dim);font-weight:500;margin-top:1px;}
+
+.main-pad{padding:24px 26px 60px;max-width:1180px;}
+
+/* KPI cards */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px;}
+.kpi-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:.15s;}
+.kpi-card:hover{border-color:var(--blue);transform:translateY(-1px);}
+.kpi-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.kpi-num{font-size:1.5rem;font-weight:800;line-height:1;}
+.kpi-label{font-size:0.76rem;color:var(--text-dim);font-weight:600;margin-top:3px;}
+
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;}
+.section-head h2{font-size:0.95rem;font-weight:800;margin:0;}
+.section-head a{font-size:0.8rem;color:var(--blue);font-weight:700;cursor:pointer;}
+.section-sub{font-size:0.78rem;color:var(--text-dim);margin:-8px 0 14px;}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.filter-bar input[type=search],.filter-bar input[type=text]{flex:1;min-width:200px;border:1.5px solid var(--line);border-radius:9px;padding:10px 12px;font-size:0.84rem;background:var(--card);color:var(--navy);}
+.filter-bar select{border:1.5px solid var(--line);border-radius:9px;padding:10px 12px;font-size:0.84rem;background:var(--card);color:var(--navy);font-weight:600;}
+.filter-bar input:focus,.filter-bar select:focus{outline:none;border-color:var(--blue);}
+.tabs{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:4px;margin-bottom:14px;}
+.tab-btn{border:none;background:transparent;color:var(--text-dim);font-size:0.78rem;font-weight:700;padding:8px 16px;border-radius:6px;}
+.tab-btn.active{background:var(--navy);color:#fff;}
+
+/* Table */
+.table-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+thead th{text-align:left;font-size:0.7rem;text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);padding:12px 16px;border-bottom:1px solid var(--line);font-weight:700;background:#FAFBFD;}
+tbody td{padding:14px 16px;border-bottom:1px solid var(--line);font-size:0.85rem;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:#FAFBFD;}
+.reg-cell{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:0.82rem;}
+.pill{display:inline-block;padding:5px 11px;border-radius:999px;font-size:0.68rem;font-weight:800;letter-spacing:.3px;}
+.pill-grey{background:var(--grey-pill);color:var(--grey-pill-text);}
+.pill-blue{background:var(--blue-dim);color:var(--blue);}
+.pill-navy{background:var(--navy);color:#fff;}
+.pill-orange{background:var(--orange);color:#fff;}
+.pill-green{background:var(--green);color:#fff;}
+.pill-red{background:var(--red);color:#fff;}
+.pill-soft-green{background:var(--green-dim);color:#0E5A38;}
+.mini-progress{display:flex;align-items:center;gap:3px;}
+.mp-dot{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#fff;font-weight:800;flex-shrink:0;}
+.mp-line{width:10px;height:2px;background:var(--line);}
+.mp-done{background:var(--green);}
+.mp-current{background:var(--blue);box-shadow:0 0 0 3px var(--blue-dim);}
+.mp-current.mp-warn{background:var(--orange);box-shadow:0 0 0 3px var(--orange-dim);}
+.mp-pending{background:#fff;border:2px solid var(--line);}
+.btn-view{background:transparent;border:1.5px solid var(--line);color:var(--navy);font-size:0.76rem;font-weight:700;padding:6px 13px;border-radius:7px;}
+.btn-view:hover{border-color:var(--blue);color:var(--blue);}
+.btn-view.accent{border-color:var(--orange);color:var(--orange);}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:0.72rem;color:var(--text-dim);margin-top:12px;align-items:center;}
+.legend span{display:inline-flex;align-items:center;gap:5px;}
+.legend .sw{width:10px;height:10px;border-radius:50%;}
+
+/* Approvals list */
+.approval-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:14px;flex-wrap:wrap;}
+.approval-card .left{display:flex;align-items:center;gap:14px;}
+.approval-card .meta{font-size:0.8rem;color:var(--text-dim);}
+.approval-card .meta strong{display:block;color:var(--navy);font-size:0.88rem;font-family:'IBM Plex Mono',monospace;}
+.btn-review{background:var(--navy);color:#fff;border:none;font-size:0.78rem;font-weight:700;padding:9px 16px;border-radius:8px;}
+.empty-state{background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);padding:40px;text-align:center;color:var(--text-dim);font-size:0.88rem;}
+
+/* Back link */
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:0.82rem;font-weight:700;color:var(--text-dim);margin-bottom:16px;background:none;border:none;}
+.back-link:hover{color:var(--blue);}
+
+/* Vehicle detail */
+.vd-grid{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start;}
+.vd-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
+.vd-title{font-size:1.15rem;font-weight:800;margin:0 0 14px;}
+.car-illustration{width:100%;height:150px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#EEF2F8,#E3E9F2);border-radius:10px;margin-bottom:16px;}
+.vd-meta{margin-bottom:16px;}
+.vd-meta-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:0.82rem;}
+.vd-meta-row:last-child{border-bottom:none;}
+.vd-meta-row .k{color:var(--text-dim);white-space:nowrap;}
+.vd-meta-row .v{font-weight:700;text-align:right;}
+.status-current{margin-top:14px;}
+.status-current .k{font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;font-weight:700;margin-bottom:6px;}
+
+.timeline-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:18px;}
+.timeline-card h3{font-size:0.9rem;font-weight:800;margin:0 0 20px;}
+.timeline-track{display:flex;align-items:flex-start;}
+.tl-stage{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;text-align:center;}
+.tl-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.85rem;z-index:2;background:#fff;border:2.5px solid var(--line);color:var(--line);}
+.tl-bar{position:absolute;top:15px;left:50%;width:100%;height:3px;background:var(--line);z-index:1;}
+.tl-stage:last-child .tl-bar{display:none;}
+.tl-label{font-size:0.76rem;font-weight:700;margin-top:10px;}
+.tl-time{font-size:0.68rem;color:var(--text-dim);margin-top:2px;font-family:'IBM Plex Mono',monospace;}
+.tl-stage.done .tl-dot{background:var(--green);border-color:var(--green);color:#fff;}
+.tl-stage.done .tl-bar{background:var(--green);}
+.tl-stage.current .tl-dot{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 0 5px var(--blue-dim);}
+.tl-stage.current .tl-label{color:var(--blue);}
+.tl-stage.current.warn .tl-dot{background:var(--orange);border-color:var(--orange);box-shadow:0 0 0 5px var(--orange-dim);}
+.tl-stage.current.warn .tl-label{color:var(--orange);}
+
+.docs-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:18px;}
+.docs-card h3{font-size:0.9rem;font-weight:800;margin:0 0 14px;}
+.doc-row{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--line);border-radius:9px;margin-bottom:9px;background:var(--paper);cursor:pointer;}
+.doc-row:hover{border-color:var(--blue);}
+.doc-icon{width:34px;height:34px;border-radius:8px;background:var(--red-dim);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;flex-shrink:0;}
+.doc-icon.gen{background:var(--blue-dim);color:var(--blue);}
+.doc-name{font-size:0.83rem;font-weight:600;flex:1;}
+.doc-name small{display:block;font-weight:500;color:var(--text-dim);font-size:0.7rem;}
+.vd-action-row{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;}
+.btn-solid-navy{background:var(--navy);color:#fff;border:none;padding:10px 16px;border-radius:9px;font-size:0.82rem;font-weight:700;}
+.btn-solid-green{background:var(--green);color:#fff;border:none;padding:10px 16px;border-radius:9px;font-size:0.82rem;font-weight:700;}
+.btn-solid-blue{background:var(--blue);color:#fff;border:none;padding:10px 16px;border-radius:9px;font-size:0.82rem;font-weight:700;}
+.btn-outline{background:#fff;border:1.5px solid var(--line);color:var(--navy);padding:10px 16px;border-radius:9px;font-size:0.82rem;font-weight:700;}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue);}
+
+/* Evidence + audit */
+.evidence-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:18px;}
+.evidence-card h3{font-size:0.9rem;font-weight:800;margin:0 0 14px;}
+.ev-grid{display:flex;gap:16px;flex-wrap:wrap;}
+.ev-photo{width:170px;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--line);}
+.ev-photo-empty{width:170px;height:120px;border-radius:10px;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:0.74rem;text-align:center;padding:10px;background:var(--paper);}
+.ev-text{flex:1;min-width:200px;font-size:0.84rem;line-height:1.6;}
+.ev-chip{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:0.72rem;font-weight:700;margin:0 6px 6px 0;}
+.audit-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
+.audit-card h3{font-size:0.9rem;font-weight:800;margin:0 0 14px;}
+.audit-item{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:0.8rem;}
+.audit-item:last-child{border-bottom:none;}
+.audit-item .at{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--text-dim);white-space:nowrap;min-width:104px;}
+.audit-item .actor{font-weight:700;}
+
+/* Workshop simulation panel */
+.sim-card{background:#FFF9F0;border:1px dashed var(--orange);border-radius:var(--radius);padding:18px;margin-bottom:18px;}
+.sim-card h3{font-size:0.86rem;font-weight:800;margin:0 0 4px;color:#8A5314;}
+.sim-card p{font-size:0.76rem;color:#8A5314;margin:0 0 14px;line-height:1.5;}
+.sim-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.btn-sim{background:#fff;border:1.5px solid var(--orange);color:#8A5314;font-size:0.78rem;font-weight:700;padding:9px 14px;border-radius:9px;}
+.btn-sim:hover{background:var(--orange);color:#fff;}
+.btn-sim[disabled]{opacity:.4;cursor:not-allowed;}
+
+/* Approval detail */
+.appr-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.appr-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;}
+.appr-card h3{font-size:0.9rem;font-weight:800;margin:0 0 16px;}
+.est-table{width:100%;border-collapse:collapse;}
+.est-table td{padding:9px 0;border-bottom:1px solid var(--line);font-size:0.85rem;}
+.est-table tr:last-child td{border-bottom:none;font-weight:800;padding-top:12px;}
+.est-table td:last-child{text-align:right;font-family:'IBM Plex Mono',monospace;}
+.notes-box{background:var(--paper);border-radius:9px;padding:14px;font-size:0.84rem;line-height:1.6;color:var(--navy);margin-top:16px;}
+.appr-actions{display:flex;gap:12px;margin-top:20px;grid-column:1/-1;}
+.btn-reject{flex:1;background:#fff;border:1.5px solid var(--red);color:var(--red);font-weight:800;padding:12px;border-radius:9px;font-size:0.86rem;}
+.btn-reject:hover{background:var(--red-dim);}
+.btn-approve{flex:1;background:var(--green);border:none;color:#fff;font-weight:800;padding:12px;border-radius:9px;font-size:0.86rem;}
+.btn-approve:hover{background:#178A50;}
+
+/* Notifications */
+.notif-row{display:flex;align-items:flex-start;gap:13px;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:10px;cursor:pointer;}
+.notif-row:hover{border-color:var(--blue);}
+.notif-row.unread{border-left:3px solid var(--blue);}
+.notif-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem;}
+.notif-body{flex:1;}
+.notif-title{font-size:0.85rem;font-weight:700;}
+.notif-sub{font-size:0.76rem;color:var(--text-dim);margin-top:2px;}
+.notif-time{font-size:0.7rem;color:var(--text-dim);white-space:nowrap;}
+.unread-dot{width:8px;height:8px;border-radius:50%;background:var(--red);margin-top:4px;flex-shrink:0;}
+
+/* Reports */
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+.chart-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
+.chart-card h3{font-size:0.88rem;font-weight:800;margin:0 0 4px;}
+.chart-card .hint{font-size:0.74rem;color:var(--text-dim);margin:0 0 16px;}
+.bar-row{display:grid;grid-template-columns:150px 1fr 66px;align-items:center;gap:10px;margin-bottom:11px;font-size:0.78rem;}
+.bar-row .bl{color:var(--text-dim);font-weight:600;}
+.bar-track{background:var(--paper);border-radius:6px;height:12px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:6px;background:var(--blue);transition:width .3s ease;}
+.bar-val{text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:0.76rem;}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;}
+.stat-card .sv{font-size:1.35rem;font-weight:800;}
+.stat-card .sl{font-size:0.74rem;color:var(--text-dim);font-weight:600;margin-top:4px;}
+
+/* Settings */
+.set-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:18px;}
+.set-card h3{font-size:0.9rem;font-weight:800;margin:0 0 4px;}
+.set-card .hint{font-size:0.76rem;color:var(--text-dim);margin:0 0 16px;}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid var(--line);}
+.set-row:last-child{border-bottom:none;}
+.set-title{font-size:0.85rem;font-weight:700;}
+.set-desc{font-size:0.75rem;color:var(--text-dim);margin-top:2px;max-width:520px;line-height:1.5;}
+.switch{width:46px;height:26px;border-radius:999px;background:var(--line);border:none;position:relative;flex-shrink:0;transition:.2s;padding:0;}
+.switch span{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.2);transition:.2s;}
+.switch.on{background:var(--green);}
+.switch.on span{left:23px;}
+.inline-form{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:14px;}
+.inline-form .field{margin-bottom:0;}
+.inline-form input,.inline-form select{min-width:180px;}
+.user-list{border:1px solid var(--line);border-radius:9px;padding:4px 14px;margin-bottom:18px;background:var(--paper);}
+.user-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);}
+.user-row:first-child{border-top:none;}
+.user-row .mono{font-size:0.72rem;color:var(--text-dim);margin-top:2px;}
+.user-you{font-size:0.68rem;font-weight:700;color:var(--blue);margin-left:6px;}
+.user-row.inactive{opacity:.62;}
+.user-row-main{flex:1;min-width:0;}
+.user-row-side{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+.user-status{font-size:0.62rem;font-weight:800;padding:3px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;}
+.user-status.on{background:var(--green-dim);color:var(--green);}
+.user-status.off{background:var(--red-dim);color:var(--red);}
+.user-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.user-actions button{font-size:0.68rem;font-weight:700;padding:5px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--navy);}
+.user-actions button:hover{border-color:var(--blue);color:var(--blue);}
+.user-actions .btn-warn{color:var(--red);border-color:rgba(229,72,77,.35);}
+.user-actions .btn-warn:hover{background:var(--red-dim);}
+.user-section-title{font-size:0.72rem;font-weight:800;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;padding:10px 0 6px;}
+.user-section-title:first-child{padding-top:0;}
+.admin-add-form{margin-top:4px;}
+.admin-add-form .field{margin-bottom:12px;}
+.add-user-panel{margin-top:16px;padding-top:16px;border-top:1px solid var(--line);}
+.add-user-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.add-user-form .field{margin-bottom:0;}
+.add-user-form .span-2{grid-column:1 / -1;}
+.add-user-form button.span-2{justify-self:start;min-width:180px;}
+@media(max-width:720px){.add-user-form{grid-template-columns:1fr;}.add-user-form .span-2{grid-column:auto;}}
+.set-banner{font-size:0.82rem;font-weight:600;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none;}
+.set-banner.show{display:block;}
+.set-banner.ok{background:var(--green-dim);color:var(--green);}
+.set-banner.err{background:var(--red-dim);color:var(--red);}
+
+/* Help */
+.faq-item{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.faq-q{width:100%;text-align:left;background:none;border:none;padding:15px 18px;font-size:0.86rem;font-weight:700;color:var(--navy);display:flex;justify-content:space-between;gap:12px;align-items:center;}
+.faq-q .mark{color:var(--blue);font-size:0.9rem;}
+.faq-a{padding:0 18px 16px;font-size:0.83rem;color:var(--text-dim);line-height:1.65;}
+
+/* ============ DRIVER SHELL ============ */
+.driver-wrap{min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:28px 12px;background:linear-gradient(160deg,var(--navy) 0%, var(--navy-2) 60%, var(--navy-3) 100%);}
+.phone{width:380px;max-width:100%;background:var(--paper);border-radius:26px;border:9px solid var(--navy);overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.4);min-height:680px;position:relative;}
+.d-topbar{background:var(--card);padding:16px 18px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.d-greet{font-size:0.95rem;font-weight:800;}
+.d-greet small{display:block;font-size:0.7rem;color:var(--text-dim);font-weight:600;margin-top:2px;}
+.d-icons{display:flex;align-items:center;gap:12px;}
+.d-back{background:none;border:none;font-size:0.95rem;font-weight:800;color:var(--navy);display:flex;align-items:center;gap:6px;}
+.d-body{padding:18px;padding-bottom:90px;}
+.logout-btn{background:none;border:1px solid var(--line);border-radius:7px;padding:6px 10px;font-size:0.72rem;font-weight:700;color:var(--navy);}
+.logout-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+.vehicle-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.vehicle-card .car-icon{width:52px;height:52px;border-radius:12px;background:var(--blue-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.vehicle-card .car-icon .i{width:26px;height:26px;color:var(--blue);}
+.vehicle-card .vname{font-size:0.85rem;font-weight:800;}
+.vehicle-card .vsub{font-size:0.76rem;color:var(--text-dim);margin-top:2px;}
+
+.status-banner{border-radius:11px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.status-banner.ok{background:var(--green-dim);}
+.status-banner.warn{background:var(--orange-dim);}
+.status-banner.info{background:var(--blue-dim);}
+.status-banner .sb-icon{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;font-size:0.85rem;}
+.status-banner.ok .sb-icon{background:var(--green);}
+.status-banner.warn .sb-icon{background:var(--orange);}
+.status-banner.info .sb-icon{background:var(--blue);}
+.status-banner .sb-title{font-size:0.83rem;font-weight:800;}
+.status-banner .sb-sub{font-size:0.72rem;color:var(--text-dim);}
+
+.action-list{list-style:none;margin:0;padding:0;}
+.action-item{display:flex;align-items:center;gap:13px;padding:14px 12px;background:var(--card);border:1px solid var(--line);border-radius:11px;margin-bottom:10px;font-size:0.86rem;font-weight:700;cursor:pointer;}
+.action-item:hover{border-color:var(--blue);}
+.action-item .i{color:var(--blue);}
+.action-item .arrow{margin-left:auto;color:var(--text-dim);}
+.action-item .tag{margin-left:auto;background:var(--orange);color:#fff;border-radius:999px;font-size:0.62rem;padding:3px 8px;font-weight:800;}
+.btn-emergency{width:100%;background:var(--red);color:#fff;border:none;padding:14px;border-radius:11px;font-weight:800;font-size:0.88rem;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;}
+.btn-emergency:hover{background:#C93337;}
+
+/* Report fault */
+.rf-label{font-size:0.78rem;font-weight:700;color:var(--text-dim);margin:0 0 12px;}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.cat-tile{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:0.72rem;font-weight:700;color:var(--navy);cursor:pointer;}
+.cat-tile .i{width:22px;height:22px;color:var(--navy);}
+.cat-tile:hover{border-color:var(--blue);}
+.cat-tile.selected{border-color:var(--blue);background:var(--blue-dim);}
+.cat-tile.selected .i{color:var(--blue);}
+.add-details-label{font-size:0.78rem;font-weight:700;color:var(--text-dim);margin:4px 0 10px;}
+.rf-textarea{width:100%;border:1.5px solid var(--line);border-radius:11px;padding:12px;font-size:0.84rem;background:var(--card);color:var(--navy);resize:vertical;min-height:76px;margin-bottom:16px;}
+.rf-textarea:focus{outline:none;border-color:var(--blue);}
+.detail-row{display:flex;gap:10px;margin-bottom:14px;}
+.detail-btn{flex:1;background:var(--card);border:1.5px solid var(--line);border-radius:11px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:0.74rem;font-weight:700;color:var(--navy);cursor:pointer;text-align:center;}
+.detail-btn.active{border-color:var(--green);background:var(--green-dim);color:#0E5A38;}
+.detail-btn .i{width:20px;height:20px;}
+.btn-submit{width:100%;background:var(--navy);color:#fff;border:none;padding:14px;border-radius:11px;font-weight:800;font-size:0.88rem;}
+.btn-submit:hover{background:var(--navy-2);}
+.photo-thumb{width:100%;max-height:130px;border-radius:10px;margin-bottom:16px;object-fit:cover;display:block;}
+.notice-card{background:var(--blue-dim);border-radius:11px;padding:16px;font-size:0.82rem;line-height:1.6;color:var(--navy);margin-bottom:16px;}
+
+/* Repair progress */
+.rp-meta-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:18px;}
+.rp-meta-row{display:flex;justify-content:space-between;gap:10px;font-size:0.82rem;padding:6px 0;}
+.rp-meta-row .k{color:var(--text-dim);}
+.rp-meta-row .v{font-weight:700;text-align:right;}
+.rp-timeline{display:flex;flex-direction:column;gap:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
+.rp-step{display:flex;gap:14px;position:relative;padding-bottom:26px;}
+.rp-step:last-child{padding-bottom:0;}
+.rp-step-line{position:absolute;left:14px;top:30px;bottom:0;width:2px;background:var(--line);}
+.rp-step:last-child .rp-step-line{display:none;}
+.rp-step.done .rp-step-line{background:var(--green);}
+.rp-dot{width:29px;height:29px;border-radius:50%;background:#fff;border:2.5px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--line);font-weight:800;z-index:2;}
+.rp-step.done .rp-dot{background:var(--green);border-color:var(--green);color:#fff;}
+.rp-step.current .rp-dot{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 0 4px var(--blue-dim);}
+.rp-step.current.warn .rp-dot{background:var(--orange);border-color:var(--orange);box-shadow:0 0 0 4px var(--orange-dim);}
+.rp-step-title{font-size:0.85rem;font-weight:800;}
+.rp-step-time{font-size:0.72rem;color:var(--text-dim);margin-top:2px;}
+.eta-card{background:var(--navy);color:#fff;border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.eta-card .i{color:var(--blue);}
+.eta-card .k{font-size:0.7rem;color:#9AA6BC;font-weight:700;text-transform:uppercase;}
+.eta-card .v{font-size:0.95rem;font-weight:800;}
+
+/* WhatsApp screen */
+.wa-screen{background:#0B141A;min-height:680px;display:flex;flex-direction:column;}
+.wa-topbar{background:#1F2C22;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.wa-topbar .back{background:none;border:none;color:#fff;font-size:1.1rem;}
+.wa-avatar{width:34px;height:34px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;color:#fff;flex-shrink:0;}
+.wa-topbar .name{font-size:0.86rem;font-weight:700;display:flex;align-items:center;gap:5px;}
+.wa-topbar .status{font-size:0.68rem;color:#9FB89F;}
+.wa-thread{flex:1;padding:16px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;max-height:520px;}
+.wa-msg{background:#1F2C22;color:#E9EDEF;border-radius:10px;padding:10px 12px;font-size:0.82rem;max-width:82%;align-self:flex-start;line-height:1.5;animation:bubbleIn .35s ease;white-space:pre-wrap;}
+.wa-msg.me{background:#005C4B;align-self:flex-end;}
+@keyframes bubbleIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.wa-msg .wtime{display:block;text-align:right;font-size:0.62rem;color:#8AA08C;margin-top:5px;}
+.wa-msg.me .wtime{color:#9AD1BF;}
+.wa-typing{display:flex;gap:4px;align-items:center;background:#1F2C22;border-radius:10px;padding:12px;align-self:flex-start;}
+.wa-typing i{width:6px;height:6px;border-radius:50%;background:#8AA08C;display:block;animation:blink 1.2s infinite;}
+.wa-typing i:nth-child(2){animation-delay:.2s;}
+.wa-typing i:nth-child(3){animation-delay:.4s;}
+@keyframes blink{0%,60%,100%{opacity:.25;}30%{opacity:1;}}
+.wa-inputbar{background:#1F2C22;padding:10px 12px;display:flex;align-items:center;gap:10px;}
+.wa-inputbar input{flex:1;background:#2A3942;border:none;border-radius:20px;padding:10px 14px;font-size:0.8rem;color:#E9EDEF;}
+.wa-inputbar input::placeholder{color:#8AA08C;}
+.wa-inputbar input:focus{outline:none;}
+.wa-inputbar .mic-btn{width:36px;height:36px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;border:none;}
+.wa-quick{display:flex;gap:6px;padding:0 12px 10px;background:#1F2C22;flex-wrap:wrap;}
+.wa-quick button{background:#2A3942;border:none;color:#B7CBBE;border-radius:999px;padding:6px 11px;font-size:0.68rem;font-weight:700;}
+.wa-quick button:hover{background:#31444F;color:#fff;}
+
+.chat-fab{position:absolute;bottom:16px;right:16px;background:var(--green);color:#fff;border:none;border-radius:999px;padding:10px 16px;font-size:0.78rem;font-weight:800;display:flex;align-items:center;gap:8px;box-shadow:0 10px 24px rgba(0,0,0,0.25);z-index:20;}
+.chat-fab .badge{background:#fff;color:var(--green);border-radius:999px;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,22,32,0.55);display:none;align-items:center;justify-content:center;z-index:200;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal-card{background:#fff;border-radius:14px;padding:26px;max-width:340px;width:100%;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.3);}
+.modal-card.wide{max-width:560px;text-align:left;}
+.modal-card .m-icon{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.3rem;}
+.modal-card h3{margin:0 0 8px;font-size:1.02rem;}
+.modal-card p{font-size:0.83rem;color:var(--text-dim);margin:0 0 20px;line-height:1.5;}
+.modal-card .field label{text-align:left;}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;}
+.modal-head h3{margin:0;}
+.modal-x{background:none;border:none;font-size:1rem;color:var(--text-dim);}
+.doc-body{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;line-height:1.7;white-space:pre-wrap;max-height:340px;overflow-y:auto;margin:0 0 18px;color:var(--navy);}
+.modal-actions{display:flex;gap:10px;}
+.modal-actions button{flex:1;margin-top:0;}
+.opt-tile{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:11px;padding:13px 14px;margin-bottom:10px;font-size:0.85rem;font-weight:700;text-align:left;width:100%;background:#fff;color:var(--navy);}
+.opt-tile:hover{border-color:var(--blue);}
+.opt-tile.selected{border-color:var(--red);background:var(--red-dim);}
+.opt-tile small{display:block;font-weight:500;color:var(--text-dim);font-size:0.72rem;margin-top:2px;}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:12px 20px;border-radius:999px;font-size:0.82rem;font-weight:700;box-shadow:0 14px 30px rgba(0,0,0,0.3);z-index:300;opacity:0;pointer-events:none;transition:all .25s ease;max-width:90vw;text-align:center;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.support-line{text-align:center;font-size:0.78rem;color:var(--text-dim);margin-top:18px;}
+.support-line a{color:var(--blue);font-weight:600;}
+
+@media(prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
+
+@media(max-width:920px){
+  .sidebar{position:fixed;top:0;bottom:0;left:0;transform:translateX(-100%);z-index:100;}
+  .sidebar.open{transform:translateX(0);}
+  .hamburger{display:block;}
+  .kpi-row{grid-template-columns:1fr 1fr;}
+  .stat-row{grid-template-columns:1fr 1fr;}
+  .report-grid{grid-template-columns:1fr;}
+  .vd-grid{grid-template-columns:1fr;}
+  .appr-grid{grid-template-columns:1fr;}
+  table{font-size:0.8rem;}
+  .dropdown-panel{width:290px;right:-70px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================ LOGIN ============================================================ -->
+<section id="screen-login" class="screen active">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="brand">
+        <div class="brand-mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 13h3l2-6h8l2 6h3M3 13v5a1 1 0 0 0 1 1h1.5a1 1 0 0 0 1-1v-1h9v1a1 1 0 0 0 1 1H19a1 1 0 0 0 1-1v-5M3 13a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="17.5" r="1.4" fill="#fff"/><circle cx="16.5" cy="17.5" r="1.4" fill="#fff"/></svg></div>
+        <div><div class="brand-title">WesBank<br>Fleet Pulse</div></div>
+      </div>
+      <div class="login-h" id="login-heading">Welcome back!</div>
+      <div class="login-sub" id="login-subheading">Sign in to continue</div>
+
+      <div class="success-banner" id="login-success"></div>
+      <div class="error-banner" id="login-error"></div>
+
+      <div id="login-panel-signin">
+      <div class="role-toggle" id="login-role-toggle">
+        <button type="button" class="role-btn active" data-role="admin">Fleet Administrator</button>
+        <button type="button" class="role-btn" data-role="driver">Driver</button>
+      </div>
+
+      <form onsubmit="handleLogin(event)" autocomplete="on">
+        <div class="field">
+          <label for="login-email">Email</label>
+          <input id="login-email" type="email" placeholder="john.admin@wesbank.co.za" autocomplete="username">
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <div class="input-row">
+            <input id="login-password" type="password" placeholder="••••••••••" autocomplete="current-password">
+            <button type="button" class="pw-toggle" id="pw-toggle" onclick="togglePw()">SHOW</button>
+          </div>
+        </div>
+        <div class="login-links">
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;"><input type="checkbox" id="login-remember" style="width:auto;"> Remember me</label>
+          <a href="#" onclick="openForgot();return false;">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn-block">Sign In</button>
+      </form>
+
+      <details class="creds">
+        <summary>Demo accounts</summary>
+        <div class="creds-body" id="creds-body"></div>
+      </details>
+
+      <div class="support-line">Need help? <a href="#" onclick="openModal('modal-support');return false;">Contact support</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ADMIN SHELL ============================================================ -->
+<section id="screen-admin" class="screen">
+  <div class="admin-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 13h3l2-6h8l2 6h3M3 13v5a1 1 0 0 0 1 1h1.5a1 1 0 0 0 1-1v-1h9v1a1 1 0 0 0 1 1H19a1 1 0 0 0 1-1v-5M3 13a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div><div class="brand-title">WesBank<br>Fleet Pulse</div></div>
+      </div>
+      <ul class="nav-list" id="nav-list"></ul>
+      <div class="sidebar-profile">
+        <div class="avatar" id="admin-avatar">JA</div>
+        <div class="who"><strong id="admin-name">John Admin</strong><small id="admin-role-label">Fleet Administrator</small></div>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+          <div class="page-title" id="page-title">Dashboard</div>
+        </div>
+        <div class="topbar-right">
+          <div class="bell-wrap" onclick="toggleBellPanel(event)">
+            <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+            <span class="dot" id="bell-dot">0</span>
+            <div class="dropdown-panel" id="bell-panel"></div>
+          </div>
+          <div class="profile-wrap" id="profile-wrap" onclick="toggleProfilePanel(event)">
+            <div class="topbar-profile">
+              <div class="avatar" id="admin-avatar-2" style="width:28px;height:28px;font-size:0.62rem;">JA</div>
+              <span id="admin-name-2">John Admin</span>
+              <span class="chev">▾</span>
+            </div>
+            <div class="dropdown-panel" id="profile-panel"></div>
+          </div>
+        </div>
+      </div>
+      <div class="main-pad" id="admin-main-pad"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ DRIVER SHELL ============================================================ -->
+<section id="screen-driver" class="screen">
+  <div class="driver-wrap">
+    <div class="phone" id="driver-phone"></div>
+  </div>
+</section>
+
+<!-- ============================================================ MODALS ============================================================ -->
+<div class="modal-overlay" id="modal-approve">
+  <div class="modal-card">
+    <div class="m-icon" style="background:var(--green-dim);color:var(--green);">✓</div>
+    <h3 id="modal-approve-title">Repair approved</h3>
+    <p id="modal-approve-text"></p>
+    <button class="btn-block" onclick="closeModal('modal-approve')">Done</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-assign">
+  <div class="modal-card wide">
+    <div class="modal-head"><h3>Assign workshop &amp; request estimate</h3><button class="modal-x" onclick="closeModal('modal-assign')">✕</button></div>
+    <p id="assign-intro"></p>
+    <div class="field">
+      <label for="assign-workshop">Workshop</label>
+      <select id="assign-workshop" onchange="renderAssignPreview()"></select>
+    </div>
+    <div class="field">
+      <label>Total amount the workshop will submit</label>
+      <div class="doc-body" id="assign-preview" style="max-height:200px;"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost-block" style="margin-top:0;" onclick="closeModal('modal-assign')">Cancel</button>
+      <button class="btn-block" onclick="confirmAssign()">Send to workshop</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-reject">
+  <div class="modal-card">
+    <div class="m-icon" style="background:var(--red-dim);color:var(--red);">✕</div>
+    <h3>Reject</h3>
+    <p>The workshop will be asked to submit a revised quote. Add a short reason so they know what to change.</p>
+    <div class="field" style="text-align:left;">
+      <label for="reject-reason">Reason</label>
+      <select id="reject-reason">
+        <option>Above approved repair budget</option>
+        <option>Second quote required</option>
+        <option>Parts should be sourced in-house</option>
+        <option>Work not covered by maintenance plan</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost-block" style="margin-top:0;" onclick="closeModal('modal-reject')">Cancel</button>
+      <button class="btn-block" style="background:var(--red);" onclick="confirmReject()">Reject</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-emergency">
+  <div class="modal-card">
+    <div class="m-icon" style="background:var(--red-dim);color:var(--red);">🚨</div>
+    <h3>Emergency Assistance</h3>
+    <p>Choose the help you need. Your fleet administrator is alerted immediately and your location is shared.</p>
+    <div id="emergency-options" style="text-align:left;"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost-block" style="margin-top:0;" onclick="closeModal('modal-emergency')">Cancel</button>
+      <button class="btn-block" style="background:var(--red);" onclick="dispatchEmergency()">Request assistance</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-doc">
+  <div class="modal-card wide">
+    <div class="modal-head"><h3 id="modal-doc-title">Document</h3><button class="modal-x" onclick="closeModal('modal-doc')">✕</button></div>
+    <div class="doc-body" id="modal-doc-body"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost-block" style="margin-top:0;" onclick="downloadCurrentDoc()">Download</button>
+      <button class="btn-block" onclick="closeModal('modal-doc')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-edit-user">
+  <div class="modal-card wide">
+    <div class="modal-head"><h3 id="edit-user-title">Edit user</h3><button class="modal-x" onclick="closeModal('modal-edit-user')">✕</button></div>
+    <div id="edit-user-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-forgot">
+  <div class="modal-card">
+    <div class="m-icon" style="background:var(--blue-dim);color:var(--blue);">🔑</div>
+    <h3>Reset your password</h3>
+    <p>Enter the email linked to your Fleet Pulse account and we will send a reset link.</p>
+    <div class="field" style="text-align:left;">
+      <label for="forgot-email">Email</label>
+      <input id="forgot-email" type="email" placeholder="you@company.co.za">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost-block" style="margin-top:0;" onclick="closeModal('modal-forgot')">Cancel</button>
+      <button class="btn-block" onclick="sendReset()">Send reset link</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-support">
+  <div class="modal-card">
+    <div class="m-icon" style="background:var(--blue-dim);color:var(--blue);">💬</div>
+    <h3>Contact support</h3>
+    <p>WesBank Fleet Services · 0861 288 272 · fleetsupport@wesbank.co.za</p>
+    <div class="field" style="text-align:left;">
+      <label for="support-msg">Message</label>
+      <textarea id="support-msg" rows="3" placeholder="How can we help?"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost-block" style="margin-top:0;" onclick="closeModal('modal-support')">Close</button>
+      <button class="btn-block" onclick="sendSupport()">Send message</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   WESBANK FLEET PULSE — connected prototype
+   Single page, in-memory data, no backend.
+   ============================================================ */
+
+/* ================= ICONS ================= */
+const ICONS = {
+  dashboard:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/></svg>',
+  vehicles:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l1.5-4.5A2 2 0 0 1 6.4 7h11.2a2 2 0 0 1 1.9 1.5L21 13"/><rect x="2.2" y="13" width="19.6" height="4.2" rx="1.3"/><circle cx="7" cy="19.2" r="1.5"/><circle cx="17" cy="19.2" r="1.5"/></svg>',
+  service:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6.5a4 4 0 0 1-5.3 5.3L4 17l3 3 5.2-5.2a4 4 0 0 1 5.3-5.3l-2.7 2.7-2-2 2.7-2.7z"/></svg>',
+  approvals:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 12l2.5 2.5L16 9"/></svg>',
+  reports:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11"/><path d="M11 20V4"/><path d="M18 20v-6.5"/></svg>',
+  notifications:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>',
+  settings:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.9 2.9l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.9-2.9l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.9-2.9l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.9 2.9l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg>',
+  help:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.7 2.2c-.9.5-1.2 1-1.2 2"/><circle cx="12" cy="17" r="0.6" fill="currentColor"/></svg>',
+  tyres:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/></svg>',
+  engine:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="12" height="8" rx="1.5"/><path d="M15 12h3l2-2v6l-2-2h-3"/><path d="M6 9V6M10 9V6"/></svg>',
+  brakes:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg>',
+  lights:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1 1 2.5h6c0-1.5.3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>',
+  battery:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="8" width="16" height="8" rx="1.5"/><path d="M20.5 10.5v3"/><path d="M7 12h2M9 10v4"/></svg>',
+  other:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>',
+  camera:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.2"/></svg>',
+  mic:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>',
+  doc:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17H6z"/><path d="M15 2v3h3"/></svg>',
+  bolt:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>',
+  clock:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>'
+};
+
+/* ================= TIME + FORMAT HELPERS ================= */
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MIN = 60000, HOUR = 3600000, DAY = 86400000;
+function minsAgo(m){ return new Date(Date.now() - m*MIN); }
+function hoursAgo(h){ return new Date(Date.now() - h*HOUR); }
+function hoursFromNow(h){ return new Date(Date.now() + h*HOUR); }
+function daysFromNow(d){ return new Date(Date.now() + d*DAY); }
+function pad2(n){ return n < 10 ? '0'+n : ''+n; }
+function clockOf(d){ return pad2(d.getHours())+':'+pad2(d.getMinutes()); }
+function sameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function fmtStamp(d){
+  if(!d) return null;
+  const n = new Date();
+  if(sameDay(d,n)) return 'Today, '+clockOf(d);
+  if(sameDay(d,new Date(Date.now()-DAY))) return 'Yesterday, '+clockOf(d);
+  if(sameDay(d,new Date(Date.now()+DAY))) return 'Tomorrow, '+clockOf(d);
+  return d.getDate()+' '+MONTHS[d.getMonth()]+', '+clockOf(d);
+}
+function fmtDate(d){ return d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear(); }
+function relTime(d){
+  const s = Math.floor((Date.now()-d.getTime())/1000);
+  if(s < 60) return 'Just now';
+  if(s < 3600) return Math.floor(s/60)+' min ago';
+  if(s < 86400) return Math.floor(s/3600)+' hr ago';
+  const days = Math.floor(s/86400);
+  if(days === 1) return 'Yesterday';
+  if(days < 7) return days+' days ago';
+  return fmtStamp(d);
+}
+function durationOpen(d){
+  if(!d) return {main:'—', sub:''};
+  const ms = Date.now() - d.getTime();
+  const mins = Math.floor(ms / MIN);
+  const hrs = Math.floor(ms / HOUR);
+  const days = Math.floor(ms / DAY);
+  if(mins < 1) return {main:'Just now', sub:'Logged '+fmtStamp(d)};
+  if(mins < 60) return {main:mins+' min', sub:'Since '+fmtStamp(d)};
+  if(hrs < 48) return {main:hrs+' hr'+(hrs===1?'':'s'), sub:'Since '+fmtStamp(d)};
+  return {main:days+' day'+(days===1?'':'s'), sub:'Since '+fmtStamp(d)};
+}
+function timeOpenCell(req){
+  if(!req) return '—';
+  const t = durationOpen(req.createdAt);
+  return '<span class="time-open">'+esc(t.main)+'<small>'+esc(t.sub)+'</small></span>';
+}
+function totalAmount(req){
+  return req && req.estimate ? req.estimate : 0;
+}
+function totalAmountCell(req){
+  if(!req || !totalAmount(req)) return '<span style="color:var(--text-dim);">—</span>';
+  return '<span class="amount-cell">'+esc(money(totalAmount(req)))+'</span>';
+}
+function money(n){ return 'R '+Number(n||0).toLocaleString('en-ZA'); }
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function initials(name){ return String(name||'').split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function titleCase(s){ return String(s||'').split(' ').filter(Boolean).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' '); }
+function greeting(){
+  const h = new Date().getHours();
+  if(h < 12) return 'Good morning';
+  if(h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+/* ================= DOMAIN CONSTANTS ================= */
+const STAGES = ['LOGGED','APPROVED','IN WORKSHOP','READY FOR COLLECTION'];
+const STAGE_LABELS = ['Logged','Approved','In Workshop','Ready for Collection'];
+
+const STATUS = {
+  LOGGED:'LOGGED',
+  AWAITING_APPROVAL:'AWAITING_APPROVAL',
+  REJECTED:'REJECTED',
+  APPROVED:'APPROVED',
+  IN_WORKSHOP:'IN_WORKSHOP',
+  READY:'READY',
+  CLOSED:'CLOSED'
+};
+const STATUS_LABEL = {
+  LOGGED:'LOGGED',
+  AWAITING_APPROVAL:'AWAITING APPROVAL',
+  REJECTED:'REVISED QUOTE PENDING',
+  APPROVED:'APPROVED',
+  IN_WORKSHOP:'IN WORKSHOP',
+  READY:'READY FOR COLLECTION',
+  CLOSED:'COLLECTED'
+};
+const STATUS_PILL = {
+  LOGGED:'pill-grey',
+  AWAITING_APPROVAL:'pill-orange',
+  REJECTED:'pill-red',
+  APPROVED:'pill-blue',
+  IN_WORKSHOP:'pill-navy',
+  READY:'pill-green',
+  CLOSED:'pill-soft-green'
+};
+
+const WORKSHOPS = [
+  {name:'AutoFix Johannesburg', suburb:'Braamfontein', phone:'011 555 0142'},
+  {name:'Tyre World Sandton', suburb:'Sandton', phone:'011 555 0198'},
+  {name:'Midrand Motor Works', suburb:'Midrand', phone:'011 555 0177'},
+  {name:'Pretoria Fleet Centre', suburb:'Centurion', phone:'012 555 0110'}
+];
+
+const CATEGORY_ESTIMATES = {
+  Tyres:{items:[['Tyres x2',2400],['Fitment',400],['Wheel Alignment',440]], hours:6,
+    note:'Rear tyres worn below legal tread depth. Replacement recommended before the next long trip.'},
+  Engine:{items:[['Diagnostics',850],['Ignition Coil Pack',2600],['Labour',1400]], hours:26,
+    note:'Engine warning light traced to a misfiring cylinder. Coil pack replacement recommended.'},
+  Brakes:{items:[['Brake Pads',2000],['Brake Discs',1800],['Labour',1000]], hours:5,
+    note:'Front brake pads and discs need replacement. Vehicle safe to drive, but repair recommended.'},
+  Lights:{items:[['Headlamp Unit',900],['Globe Set',180],['Labour',350]], hours:3,
+    note:'Nearside headlamp unit cracked and taking in water. Replacement recommended.'},
+  Battery:{items:[['Battery 12V 70Ah',1650],['Terminal Clean',150],['Labour',300]], hours:2,
+    note:'Battery failing its load test. Replacement recommended to avoid a roadside breakdown.'},
+  Service:{items:[['Minor Service',1150],['Oil & Filters',350]], hours:5,
+    note:'Standard scheduled service — oil, filters and a full safety inspection.'},
+  Other:{items:[['Inspection',650],['Labour',600]], hours:8,
+    note:'General inspection required to confirm the reported fault before further work.'}
+};
+
+let users = [
+  {id:'u-admin',  name:'John Admin',   email:'john.admin@wesbank.co.za',    password:'fleet123', role:'admin',  title:'Fleet Administrator', active:true},
+  {id:'u-admin2', name:'Sarah Naidoo', email:'sarah.naidoo@wesbank.co.za',  password:'fleet123', role:'admin',  title:'Fleet Administrator', active:true},
+  {id:'u-d1', name:'John Smith',    email:'john.smith@fleetmail.co.za',    password:'fleet123', role:'driver', title:'Driver', vehicleId:'v1', active:true},
+  {id:'u-d2', name:'Thabo Molefe',  email:'thabo.molefe@fleetmail.co.za',  password:'fleet123', role:'driver', title:'Driver', vehicleId:'v2', active:true},
+  {id:'u-d3', name:'Sipho Dlamini', email:'sipho.dlamini@fleetmail.co.za', password:'fleet123', role:'driver', title:'Driver', vehicleId:'v3', active:true},
+  {id:'u-d4', name:'Nomsa Radebe',  email:'nomsa.radebe@fleetmail.co.za',  password:'fleet123', role:'driver', title:'Driver', vehicleId:'v4', active:true}
+];
+function resetUsers(){
+  users = [
+    {id:'u-admin',  name:'John Admin',   email:'john.admin@wesbank.co.za',    password:'fleet123', role:'admin',  title:'Fleet Administrator', active:true},
+    {id:'u-admin2', name:'Sarah Naidoo', email:'sarah.naidoo@wesbank.co.za',  password:'fleet123', role:'admin',  title:'Fleet Administrator', active:true},
+    {id:'u-d1', name:'John Smith',    email:'john.smith@fleetmail.co.za',    password:'fleet123', role:'driver', title:'Driver', vehicleId:'v1', active:true},
+    {id:'u-d2', name:'Thabo Molefe',  email:'thabo.molefe@fleetmail.co.za',  password:'fleet123', role:'driver', title:'Driver', vehicleId:'v2', active:true},
+    {id:'u-d3', name:'Sipho Dlamini', email:'sipho.dlamini@fleetmail.co.za', password:'fleet123', role:'driver', title:'Driver', vehicleId:'v3', active:true},
+    {id:'u-d4', name:'Nomsa Radebe',  email:'nomsa.radebe@fleetmail.co.za',  password:'fleet123', role:'driver', title:'Driver', vehicleId:'v4', active:true}
+  ];
+}
+
+const DEFAULT_SETTINGS = {whatsapp:true, email:true, inApp:true, autoApproveUnder:0};
+
+/* ================= STATE ================= */
+let state = {
+  session:null,
+  settings:Object.assign({}, DEFAULT_SETTINGS),
+  vehicles:[], requests:[], notifications:[], waThreads:{}, waUnread:{},
+  srSeq:8950, notifSeq:0, reqSeq:0,
+  adminView:'dashboard', adminParam:null,
+  vehicleSearch:'', vehicleFilter:'all', srTab:'active',
+  driverView:'home', waDraft:'', waTyping:false,
+  rfCategory:null, rfDesc:'', rfPhoto:null, rfVoiceSecs:0, rfRecording:false,
+  faqOpen:0, emergencyChoice:'roadside',
+  assignReqId:null, rejectReqId:null, currentDoc:null, editingUserId:null, userMgmtTab:'admin'
+};
+
+function seedData(){
+  const vehicles = [
+    {id:'v1',  reg:'ABC123GP', driver:'John Smith',    make:'Toyota Fortuner 2.8', year:2023, odometer:84210, licenceExpiry:daysFromNow(15)},
+    {id:'v2',  reg:'DEF456GP', driver:'Thabo Molefe',  make:'Isuzu D-Max 250',     year:2022, odometer:112480, licenceExpiry:daysFromNow(96)},
+    {id:'v3',  reg:'GHI789GP', driver:'Sipho Dlamini', make:'Ford Ranger XL',      year:2023, odometer:64330, licenceExpiry:daysFromNow(58)},
+    {id:'v4',  reg:'JKL012GP', driver:'Nomsa Radebe',  make:'VW Polo Vivo',        year:2024, odometer:21870, licenceExpiry:daysFromNow(210)},
+    {id:'v5',  reg:'MNP345GP', driver:'Lerato Khumalo',make:'Nissan NP200',        year:2021, odometer:148900, licenceExpiry:daysFromNow(41)},
+    {id:'v6',  reg:'QRS678GP', driver:'Ahmed Patel',   make:'Hyundai i20',         year:2023, odometer:38650, licenceExpiry:daysFromNow(132)},
+    {id:'v7',  reg:'TUV901GP', driver:'Dineo Sithole', make:'Toyota Hilux 2.4',    year:2022, odometer:97240, licenceExpiry:daysFromNow(77)},
+    {id:'v8',  reg:'WXY234GP', driver:'Pieter van Wyk',make:'Mercedes Sprinter',   year:2021, odometer:186300, licenceExpiry:daysFromNow(24)},
+    {id:'v9',  reg:'BCD567GP', driver:'Zanele Mokoena',make:'Suzuki Swift',        year:2024, odometer:14120, licenceExpiry:daysFromNow(255)},
+    {id:'v10', reg:'EFG890GP', driver:'Kagiso Molefe', make:'Toyota Corolla Quest',year:2023, odometer:52340, licenceExpiry:daysFromNow(103)},
+    {id:'v11', reg:'HIJ123GP', driver:'Naledi Botha',  make:'Kia Picanto',         year:2024, odometer:9880,  licenceExpiry:daysFromNow(288)},
+    {id:'v12', reg:'KLM456GP', driver:'Sifiso Ndlovu', make:'Isuzu NPR Truck',     year:2020, odometer:214600, licenceExpiry:daysFromNow(63)},
+    {id:'v13', reg:'NOP789GP', driver:'Chantal Adams', make:'Renault Kwid',        year:2023, odometer:31450, licenceExpiry:daysFromNow(171)},
+    {id:'v14', reg:'QRT012GP', driver:'Bongani Zulu',  make:'Ford Transit',        year:2022, odometer:126780, licenceExpiry:daysFromNow(35)}
+  ];
+
+  const requests = [
+    mkRequest({id:'r1', reqNo:'SR8921', vehicleId:'v1', category:'Brakes', issue:'Brake Warning Light',
+      description:'Warning light came on this morning and the pedal feels soft when braking downhill.',
+      status:STATUS.IN_WORKSHOP, workshop:'AutoFix Johannesburg', estimate:4800,
+      breakdown:[['Brake Pads',2000],['Brake Discs',1800],['Labour',1000]],
+      notes:CATEGORY_ESTIMATES.Brakes.note, createdAt:hoursAgo(28), etaAt:hoursFromNow(2),
+      logs:{0:hoursAgo(28), 1:hoursAgo(26.5), 2:hoursAgo(25), 3:null}}),
+
+    mkRequest({id:'r2', reqNo:'SR8933', vehicleId:'v2', category:'Tyres', issue:'Tyre Replacement',
+      description:'Two rear tyres are badly worn on the inner edge.',
+      status:STATUS.AWAITING_APPROVAL, workshop:'Tyre World Sandton', estimate:3240,
+      breakdown:[['Tyres x2',2400],['Fitment',400],['Wheel Alignment',440]],
+      notes:CATEGORY_ESTIMATES.Tyres.note, createdAt:hoursAgo(6), etaAt:null,
+      logs:{0:hoursAgo(6), 1:null, 2:null, 3:null}}),
+
+    mkRequest({id:'r3', reqNo:'SR8940', vehicleId:'v3', category:'Service', issue:'Service Due',
+      description:'60 000 km scheduled service.',
+      status:STATUS.READY, workshop:'AutoFix Johannesburg', estimate:1500,
+      breakdown:[['Minor Service',1150],['Oil & Filters',350]],
+      notes:CATEGORY_ESTIMATES.Service.note, createdAt:hoursAgo(52), etaAt:hoursAgo(3),
+      logs:{0:hoursAgo(52), 1:hoursAgo(50), 2:hoursAgo(48), 3:hoursAgo(3)}}),
+
+    mkRequest({id:'r4', reqNo:'SR8951', vehicleId:'v4', category:'Engine', issue:'Engine Warning Light',
+      description:'Orange engine light flashing and the car hesitates when pulling away.',
+      status:STATUS.LOGGED, workshop:null, estimate:0, breakdown:[],
+      notes:'Awaiting workshop assignment.', createdAt:minsAgo(12), etaAt:null,
+      logs:{0:minsAgo(12), 1:null, 2:null, 3:null}}),
+
+    mkRequest({id:'r5', reqNo:'SR8955', vehicleId:'v5', category:'Battery', issue:'Battery Not Holding Charge',
+      description:'Vehicle needed a jump start twice this week.',
+      status:STATUS.APPROVED, workshop:'Midrand Motor Works', estimate:2100,
+      breakdown:[['Battery 12V 70Ah',1650],['Terminal Clean',150],['Labour',300]],
+      notes:CATEGORY_ESTIMATES.Battery.note, createdAt:hoursAgo(9), etaAt:hoursFromNow(20),
+      logs:{0:hoursAgo(9), 1:hoursAgo(1), 2:null, 3:null}}),
+
+    mkRequest({id:'r6', reqNo:'SR8902', vehicleId:'v6', category:'Lights', issue:'Broken Headlamp',
+      description:'Left headlamp cracked after a stone chip.',
+      status:STATUS.CLOSED, workshop:'Pretoria Fleet Centre', estimate:1430,
+      breakdown:[['Headlamp Unit',900],['Globe Set',180],['Labour',350]],
+      notes:CATEGORY_ESTIMATES.Lights.note, createdAt:hoursAgo(120), etaAt:hoursAgo(110),
+      logs:{0:hoursAgo(120), 1:hoursAgo(118), 2:hoursAgo(116), 3:hoursAgo(110)}}),
+
+    mkRequest({id:'r7', reqNo:'SR8888', vehicleId:'v7', category:'Tyres', issue:'Puncture Repair',
+      description:'Slow puncture on the front left tyre.',
+      status:STATUS.CLOSED, workshop:'Tyre World Sandton', estimate:980,
+      breakdown:[['Tyre Repair',480],['Balancing',260],['Labour',240]],
+      notes:'Puncture repaired and wheel rebalanced.', createdAt:hoursAgo(200), etaAt:hoursAgo(193),
+      logs:{0:hoursAgo(200), 1:hoursAgo(199), 2:hoursAgo(197), 3:hoursAgo(193)}}),
+
+    mkRequest({id:'r8', reqNo:'SR8947', vehicleId:'v8', category:'Brakes', issue:'Brake Overhaul',
+      description:'Grinding noise from the rear brakes on the panel van.',
+      status:STATUS.REJECTED, workshop:'Midrand Motor Works', estimate:9800,
+      breakdown:[['Brake Pads x4',3800],['Brake Discs x4',4200],['Labour',1800]],
+      notes:'Estimate rejected by administrator — awaiting revised quote from the workshop.',
+      createdAt:hoursAgo(30), etaAt:null,
+      logs:{0:hoursAgo(30), 1:null, 2:null, 3:null},
+      rejections:[{at:hoursAgo(4), reason:'Above approved repair budget', by:'John Admin'}]}),
+
+    mkRequest({id:'r9', reqNo:'SR8949', vehicleId:'v9', category:'Engine', issue:'Coolant Leak',
+      description:'Coolant warning and a puddle under the car each morning.',
+      status:STATUS.IN_WORKSHOP, workshop:'AutoFix Johannesburg', estimate:5400,
+      breakdown:[['Water Pump',2900],['Coolant Flush',700],['Labour',1800]],
+      notes:'Water pump seal failed. Replacement and full coolant flush recommended.',
+      createdAt:hoursAgo(44), etaAt:hoursFromNow(6),
+      logs:{0:hoursAgo(44), 1:hoursAgo(42), 2:hoursAgo(40), 3:null}})
+  ];
+
+  requests.forEach(r => {
+    const v = vehicles.find(x => x.id === r.vehicleId);
+    r.reportedBy = v ? v.driver : 'Driver';
+    r.audit = buildSeedAudit(r);
+  });
+
+  state.vehicles = vehicles;
+  state.requests = requests;
+  state.srSeq = 8955;
+  state.reqSeq = 9;
+  state.notifSeq = 0;
+
+  state.notifications = [
+    mkNotif('🔧','blue','Vehicle ABC123GP','Entered workshop — brake repair underway','v1','r1', hoursAgo(25), true),
+    mkNotif('💰','orange','Vehicle DEF456GP','Awaiting your approval for a R 3,240 estimate','v2','r2', hoursAgo(5), false),
+    mkNotif('⚠️','orange','Vehicle WXY234GP','Estimate rejected — revised quote requested','v8','r8', hoursAgo(4), false),
+    mkNotif('✅','green','Vehicle GHI789GP','Ready for collection at AutoFix Johannesburg','v3','r3', hoursAgo(3), false),
+    mkNotif('🚗','orange','New fault reported','JKL012GP — Engine warning light','v4','r4', minsAgo(12), false),
+    mkNotif('📋','grey','Licence renewal','ABC123GP licence expires in 15 days', 'v1', null, hoursAgo(26), true)
+  ];
+
+  state.waThreads = {};
+  state.waUnread = {};
+  state.vehicles.forEach(v => { state.waThreads[v.id] = []; state.waUnread[v.id] = 0; });
+
+  seedWA('v1', [
+    ['bot', 'Hi John 👋 We have logged your Brakes report for ABC123GP. Reference SR8921.', hoursAgo(28)],
+    ['bot', 'Your estimate of R 4,800 has been approved by your fleet administrator.', hoursAgo(26.5)],
+    ['bot', 'Your vehicle ABC123GP is now IN WORKSHOP at AutoFix Johannesburg.\nEstimated completion: '+fmtStamp(hoursFromNow(2))+'.', hoursAgo(25)]
+  ]);
+  seedWA('v2', [
+    ['bot', 'Hi Thabo 👋 We have logged your Tyres report for DEF456GP. Reference SR8933.', hoursAgo(6)],
+    ['bot', 'Tyre World Sandton submitted an estimate of R 3,240. Your fleet administrator is reviewing it now.', hoursAgo(5)]
+  ]);
+  seedWA('v3', [
+    ['bot', 'Great news — your vehicle GHI789GP is READY FOR COLLECTION at AutoFix Johannesburg.', hoursAgo(3)]
+  ]);
+  seedWA('v4', [
+    ['bot', 'Hi Nomsa 👋 We have logged your Engine report for JKL012GP. Reference SR8951.', minsAgo(12)]
+  ]);
+  state.waUnread['v2'] = 1;
+  state.waUnread['v3'] = 1;
+}
+
+function mkRequest(o){
+  return Object.assign({
+    id:null, reqNo:null, vehicleId:null, category:'Other', issue:'', description:'',
+    photo:null, voiceSecs:0, status:STATUS.LOGGED, workshop:null,
+    estimate:0, breakdown:[], notes:'', createdAt:new Date(), etaAt:null,
+    logs:{0:null,1:null,2:null,3:null}, audit:[], rejections:[], reportedBy:'Driver'
+  }, o);
+}
+
+function buildSeedAudit(r){
+  const a = [];
+  const push = (at, actor, text) => { if(at) a.push({at, actor, text}); };
+  push(r.logs[0], r.reportedBy, 'Fault reported via the driver app — '+r.category);
+  if(r.workshop && r.estimate) push(new Date(r.createdAt.getTime()+30*MIN), r.workshop, 'Estimate of '+money(r.estimate)+' submitted for approval');
+  (r.rejections||[]).forEach(rej => push(rej.at, rej.by, 'Estimate rejected — '+rej.reason));
+  push(r.logs[1], 'John Admin', 'Estimate approved');
+  push(r.logs[2], r.workshop || 'Workshop', 'Vehicle checked in — repair started');
+  push(r.logs[3], r.workshop || 'Workshop', 'Work completed — ready for collection');
+  if(r.status === STATUS.CLOSED) push(new Date((r.logs[3]||r.createdAt).getTime()+2*HOUR), r.reportedBy, 'Vehicle collected — request closed');
+  return a.sort((x,y) => x.at - y.at);
+}
+
+function mkNotif(icon, color, title, sub, vehicleId, requestId, at, read){
+  state.notifSeq++;
+  return {id:'n'+state.notifSeq, icon, color, title, sub, vehicleId, requestId, at:at||new Date(), read:!!read};
+}
+
+function seedWA(vehicleId, rows){
+  state.waThreads[vehicleId] = rows.map(([from, text, at]) => ({from, text, at}));
+}
+
+/* ================= LOOKUPS ================= */
+function vehicleById(id){ return state.vehicles.find(v => v.id === id) || null; }
+function requestById(id){ return state.requests.find(r => r.id === id) || null; }
+function activeRequest(vehicleId){
+  return state.requests.filter(r => r.vehicleId === vehicleId && r.status !== STATUS.CLOSED)
+    .sort((a,b) => b.createdAt - a.createdAt)[0] || null;
+}
+function latestRequest(vehicleId){
+  return state.requests.filter(r => r.vehicleId === vehicleId)
+    .sort((a,b) => b.createdAt - a.createdAt)[0] || null;
+}
+function openRequests(){ return state.requests.filter(r => r.status !== STATUS.CLOSED); }
+function workshopByName(name){ return WORKSHOPS.find(w => w.name === name) || null; }
+function isOpen(r){ return r && r.status !== STATUS.CLOSED; }
+
+function kpis(){
+  const open = openRequests();
+  return {
+    total: state.vehicles.length,
+    inWorkshop: open.filter(r => r.status === STATUS.IN_WORKSHOP).length,
+    awaiting: open.filter(r => r.status === STATUS.AWAITING_APPROVAL || r.status === STATUS.REJECTED).length,
+    ready: open.filter(r => r.status === STATUS.READY).length
+  };
+}
+
+/* ================= STAGE MAPPING ================= */
+function stageInfo(req){
+  if(!req) return {idx:0, mode:'pending'};
+  switch(req.status){
+    case STATUS.LOGGED:             return {idx:0, mode:'current'};
+    case STATUS.AWAITING_APPROVAL:  return {idx:1, mode:'warn'};
+    case STATUS.REJECTED:           return {idx:1, mode:'warn'};
+    case STATUS.APPROVED:           return {idx:1, mode:'current'};
+    case STATUS.IN_WORKSHOP:        return {idx:2, mode:'current'};
+    case STATUS.READY:              return {idx:3, mode:'done'};
+    case STATUS.CLOSED:             return {idx:3, mode:'done'};
+    default:                        return {idx:0, mode:'current'};
+  }
+}
+function stageClass(req, i){
+  const info = stageInfo(req);
+  if(i < info.idx) return 'done';
+  if(i > info.idx) return '';
+  if(info.mode === 'done') return 'done';
+  if(info.mode === 'warn') return 'current warn';
+  return 'current';
+}
+function stageTime(req, i){
+  if(req.logs[i]) return fmtStamp(req.logs[i]);
+  const info = stageInfo(req);
+  if(i === info.idx){
+    if(req.status === STATUS.AWAITING_APPROVAL) return 'Awaiting approval';
+    if(req.status === STATUS.REJECTED) return 'Revised quote due';
+    return 'In progress';
+  }
+  return '—';
+}
+function pillFor(req){
+  if(!req) return '<span class="pill pill-soft-green">NO ACTIVE REQUEST</span>';
+  return '<span class="pill '+STATUS_PILL[req.status]+'">'+STATUS_LABEL[req.status]+'</span>';
+}
+function statusCell(req){
+  if(!req) return '—';
+  if(req.status === STATUS.AWAITING_APPROVAL) return timeOpenCell(req);
+  return pillFor(req);
+}
+function miniProgress(req){
+  if(!req) return '<span style="color:var(--text-dim);font-size:0.78rem;">—</span>';
+  let out = '<div class="mini-progress">';
+  for(let i=0;i<4;i++){
+    const cls = stageClass(req, i);
+    let dotCls = 'mp-pending', label = '';
+    if(cls === 'done'){ dotCls = 'mp-done'; label = '✓'; }
+    else if(cls === 'current warn'){ dotCls = 'mp-current mp-warn'; label = '!'; }
+    else if(cls === 'current'){ dotCls = 'mp-current'; }
+    out += '<div class="mp-dot '+dotCls+'">'+label+'</div>';
+    if(i < 3) out += '<div class="mp-line"></div>';
+  }
+  return out+'</div>';
+}
+function fullTimeline(req){
+  let out = '<div class="timeline-track">';
+  STAGES.forEach((s,i) => {
+    const cls = stageClass(req, i);
+    const dot = cls.indexOf('done') === 0 ? '✓' : (i+1);
+    out += '<div class="tl-stage '+cls+'"><div class="tl-bar"></div><div class="tl-dot">'+dot+'</div>'
+        +  '<div class="tl-label">'+STAGE_LABELS[i]+'</div>'
+        +  '<div class="tl-time">'+esc(stageTime(req,i))+'</div></div>';
+  });
+  return out+'</div>';
+}
+function etaText(req){
+  if(!req) return '—';
+  switch(req.status){
+    case STATUS.LOGGED: return 'Pending workshop';
+    case STATUS.AWAITING_APPROVAL: return 'Pending approval';
+    case STATUS.REJECTED: return 'Awaiting revised quote';
+    case STATUS.READY: return 'Ready now';
+    case STATUS.CLOSED: return 'Collected';
+    default: return req.etaAt ? fmtStamp(req.etaAt) : '—';
+  }
+}
+
+/* ================= COMMUNICATIONS ================= */
+function addNotification(icon, color, title, sub, vehicleId, requestId){
+  if(!state.settings.inApp) return;
+  state.notifications.unshift(mkNotif(icon, color, title, sub, vehicleId, requestId, new Date(), false));
+}
+function pushWA(vehicleId, text){
+  if(!state.settings.whatsapp || !vehicleId) return;
+  if(!state.waThreads[vehicleId]) state.waThreads[vehicleId] = [];
+  state.waThreads[vehicleId].push({from:'bot', text, at:new Date()});
+  const viewingThisThread = state.session && state.session.role === 'driver'
+    && state.session.vehicleId === vehicleId && state.driverView === 'whatsapp';
+  if(!viewingThisThread) state.waUnread[vehicleId] = (state.waUnread[vehicleId]||0) + 1;
+}
+function logAudit(req, actor, text){
+  req.audit.push({at:new Date(), actor, text});
+  if(state.settings.email) req.audit[req.audit.length-1].emailed = true;
+}
+
+/* ================= STATE MACHINE ================= */
+const ALLOWED = {
+  LOGGED:['AWAITING_APPROVAL'],
+  AWAITING_APPROVAL:['APPROVED','REJECTED'],
+  REJECTED:['AWAITING_APPROVAL'],
+  APPROVED:['IN_WORKSHOP'],
+  IN_WORKSHOP:['READY'],
+  READY:['CLOSED'],
+  CLOSED:[]
+};
+
+/**
+ * Single entry point for every status change. Stamps the stage timestamp,
+ * recalculates the ETA, writes the audit entry, then fires the admin
+ * notification and the driver WhatsApp message.
+ */
+function transition(reqId, next, opts){
+  opts = opts || {};
+  const req = requestById(reqId);
+  if(!req) return false;
+  if(req.status !== next && ALLOWED[req.status].indexOf(next) === -1){
+    showToast('That step is not available from '+STATUS_LABEL[req.status]);
+    return false;
+  }
+  const v = vehicleById(req.vehicleId);
+  const at = new Date();
+  const actor = opts.actor || (state.session ? state.session.name : 'System');
+  req.status = next;
+
+  switch(next){
+    case STATUS.AWAITING_APPROVAL:
+      req.etaAt = null;
+      logAudit(req, opts.workshopActor || req.workshop || 'Workshop',
+        (opts.revised ? 'Revised estimate of ' : 'Estimate of ')+money(req.estimate)+' submitted for approval');
+      addNotification('💰','orange','Vehicle '+v.reg, 'Awaiting your approval for a total of '+money(req.estimate), v.id, req.id);
+      pushWA(v.id, req.workshop+' submitted a total of '+money(req.estimate)+' for '+v.reg+'.\nYour fleet administrator is reviewing it now.');
+      break;
+
+    case STATUS.APPROVED:
+      req.logs[1] = at;
+      req.etaAt = hoursFromNow(estimateHours(req));
+      logAudit(req, actor, 'Total of '+money(req.estimate)+' approved');
+      addNotification('👍','blue','Vehicle '+v.reg, 'Total approved — sent to '+req.workshop, v.id, req.id);
+      pushWA(v.id, 'Good news — the repair total for '+v.reg+' has been APPROVED.\n'+req.workshop+' will start the work shortly.');
+      break;
+
+    case STATUS.REJECTED: {
+      const reason = opts.reason || 'Revised quote required';
+      req.rejections.push({at, reason, by:actor});
+      req.notes = 'Estimate rejected by '+actor+' — '+reason+'. Awaiting a revised quote from '+req.workshop+'.';
+      req.etaAt = null;
+      logAudit(req, actor, 'Estimate rejected — '+reason);
+      addNotification('⚠️','orange','Vehicle '+v.reg, 'Estimate rejected — revised quote requested', v.id, req.id);
+      pushWA(v.id, 'Your fleet administrator has requested a revised quote for '+v.reg+'.\nReason: '+reason+'. We will update you as soon as it arrives.');
+      break;
+    }
+
+    case STATUS.IN_WORKSHOP:
+      req.logs[2] = at;
+      req.etaAt = req.etaAt || hoursFromNow(estimateHours(req));
+      logAudit(req, req.workshop || 'Workshop', 'Vehicle checked in — repair started');
+      addNotification('🔧','blue','Vehicle '+v.reg, 'Entered workshop — '+req.issue, v.id, req.id);
+      pushWA(v.id, 'Your vehicle '+v.reg+' is now IN WORKSHOP at '+req.workshop+'.\nEstimated completion: '+fmtStamp(req.etaAt)+'.\nYou will be notified once it is ready.');
+      break;
+
+    case STATUS.READY:
+      req.logs[3] = at;
+      req.etaAt = at;
+      logAudit(req, req.workshop || 'Workshop', 'Work completed — ready for collection');
+      addNotification('✅','green','Vehicle '+v.reg, 'Ready for collection at '+req.workshop, v.id, req.id);
+      pushWA(v.id, 'Great news — '+v.reg+' is READY FOR COLLECTION at '+req.workshop+'.\nPlease bring your driver card when you collect.');
+      break;
+
+    case STATUS.CLOSED:
+      logAudit(req, actor, 'Vehicle collected — request closed');
+      addNotification('🏁','grey','Vehicle '+v.reg, 'Collected by '+req.reportedBy+' — request closed', v.id, req.id);
+      pushWA(v.id, 'Thanks for confirming collection of '+v.reg+'. Service request '+req.reqNo+' is now closed.\nDrive safely!');
+      break;
+  }
+
+  renderAll();
+  return true;
+}
+
+function estimateHours(req){
+  const cat = CATEGORY_ESTIMATES[req.category] || CATEGORY_ESTIMATES.Other;
+  return cat.hours;
+}
+
+/* ---- Workshop assignment + estimate generation ---- */
+function buildEstimate(category){
+  const cat = CATEGORY_ESTIMATES[category] || CATEGORY_ESTIMATES.Other;
+  const breakdown = cat.items.map(x => [x[0], x[1]]);
+  return {breakdown, total:breakdown.reduce((s,x) => s+x[1], 0), notes:cat.note, hours:cat.hours};
+}
+
+function openAssign(reqId){
+  const req = requestById(reqId);
+  if(!req) return;
+  state.assignReqId = reqId;
+  const v = vehicleById(req.vehicleId);
+  document.getElementById('assign-intro').textContent =
+    'Send '+v.reg+' ('+req.reqNo+' — '+req.issue+') to a workshop. They inspect the vehicle and submit an estimate for your approval.';
+  const sel = document.getElementById('assign-workshop');
+  sel.innerHTML = WORKSHOPS.map(w => '<option value="'+esc(w.name)+'">'+esc(w.name)+' · '+esc(w.suburb)+'</option>').join('');
+  renderAssignPreview();
+  openModal('modal-assign');
+}
+function renderAssignPreview(){
+  const req = requestById(state.assignReqId);
+  if(!req) return;
+  const est = buildEstimate(req.category);
+  const lines = est.breakdown.map(b => '  '+b[0].padEnd(24,'.')+' '+money(b[1])).join('\n');
+  document.getElementById('assign-preview').textContent =
+    'TOTAL — '+req.category+'\n'+lines+'\n  '+'TOTAL'.padEnd(24,'.')+' '+money(est.total)+
+    '\n\nNotes: '+est.notes+'\nEstimated work time: '+est.hours+' hours';
+}
+function confirmAssign(){
+  const req = requestById(state.assignReqId);
+  if(!req) return;
+  const name = document.getElementById('assign-workshop').value;
+  const est = buildEstimate(req.category);
+  req.workshop = name;
+  req.breakdown = est.breakdown;
+  req.estimate = est.total;
+  req.notes = est.notes;
+  logAudit(req, state.session.name, 'Assigned to '+name+' and requested an estimate');
+  closeModal('modal-assign');
+  transition(req.id, STATUS.AWAITING_APPROVAL, {workshopActor:name});
+  if(!maybeAutoApprove(req)) showToast(req.reqNo+' sent to '+name+' — estimate ready to review');
+  setAdminView('vehicle-detail', req.vehicleId);
+}
+
+function maybeAutoApprove(req){
+  const limit = Number(state.settings.autoApproveUnder) || 0;
+  if(limit > 0 && req.status === STATUS.AWAITING_APPROVAL && req.estimate <= limit){
+    logAudit(req, 'Fleet Pulse', 'Auto-approved — estimate below the '+money(limit)+' threshold');
+    transition(req.id, STATUS.APPROVED, {actor:'Fleet Pulse (auto-approval)'});
+    showToast('Auto-approved: '+money(req.estimate)+' is under your '+money(limit)+' limit');
+    return true;
+  }
+  return false;
+}
+
+/* ---- Admin actions ---- */
+function approveEstimate(reqId){
+  const req = requestById(reqId);
+  if(!req) return;
+  const v = vehicleById(req.vehicleId);
+  transition(reqId, STATUS.APPROVED);
+  document.getElementById('modal-approve-text').textContent =
+    v.reg+' is approved for repair at '+req.workshop+'. '+req.reportedBy+
+    ' has been notified on WhatsApp. Check the vehicle in when the workshop receives it.';
+  openModal('modal-approve');
+  showToast('Estimate approved');
+  setAdminView('approvals');
+}
+function openReject(reqId){ state.rejectReqId = reqId; openModal('modal-reject'); }
+function confirmReject(){
+  const reqId = state.rejectReqId;
+  const reason = document.getElementById('reject-reason').value;
+  closeModal('modal-reject');
+  const req = requestById(reqId);
+  if(!req) return;
+  transition(reqId, STATUS.REJECTED, {reason});
+  showToast('Estimate rejected — workshop notified');
+  setAdminView('approvals');
+}
+function submitRevisedQuote(reqId){
+  const req = requestById(reqId);
+  if(!req) return;
+  const scale = 0.82;
+  req.breakdown = req.breakdown.map(b => [b[0], Math.round(b[1]*scale/10)*10]);
+  req.estimate = req.breakdown.reduce((s,b) => s+b[1], 0);
+  req.notes = 'Revised quote after the previous estimate was rejected. Reconditioned parts used where safe to do so.';
+  transition(reqId, STATUS.AWAITING_APPROVAL, {revised:true});
+  if(!maybeAutoApprove(req)) showToast('Revised quote of '+money(req.estimate)+' submitted');
+  setAdminView('approval-detail', req.id);
+}
+function checkIntoWorkshop(reqId){
+  transition(reqId, STATUS.IN_WORKSHOP);
+  const req = requestById(reqId);
+  showToast(vehicleById(req.vehicleId).reg+' checked in at '+req.workshop);
+  setAdminView('vehicle-detail', req.vehicleId);
+}
+function markReady(reqId){
+  transition(reqId, STATUS.READY);
+  const req = requestById(reqId);
+  showToast(vehicleById(req.vehicleId).reg+' marked ready for collection');
+  setAdminView('vehicle-detail', req.vehicleId);
+}
+function markCollected(reqId){
+  transition(reqId, STATUS.CLOSED);
+  const req = requestById(reqId);
+  showToast(vehicleById(req.vehicleId).reg+' collected — request closed');
+  setAdminView('vehicle-detail', req.vehicleId);
+}
+
+/* ================= AUTH ================= */
+function findUser(email){
+  return users.find(u => u.email.toLowerCase() === String(email||'').trim().toLowerCase()) || null;
+}
+function userById(id){
+  return users.find(u => u.id === id) || null;
+}
+function isUserActive(u){
+  return !!u && u.active !== false;
+}
+function activeUsersByRole(role){
+  return users.filter(u => u.role === role && isUserActive(u));
+}
+function findUserExcept(email, exceptId){
+  const e = String(email || '').trim().toLowerCase();
+  return users.find(u => u.email.toLowerCase() === e && u.id !== exceptId) || null;
+}
+function vehicleOptionsForUser(user){
+  const taken = new Set(users.filter(u => u.role === 'driver' && u.vehicleId && isUserActive(u) && u.id !== user.id).map(u => u.vehicleId));
+  return state.vehicles.filter(v => !taken.has(v.id) || v.id === user.vehicleId);
+}
+function syncDriverVehicle(user, prevVehicleId, prevName){
+  if(user.role !== 'driver') return;
+  if(prevVehicleId && prevVehicleId !== user.vehicleId){
+    const oldV = vehicleById(prevVehicleId);
+    if(oldV && oldV.driver === prevName) oldV.driver = 'Unassigned';
+  }
+  if(user.vehicleId){
+    const v = vehicleById(user.vehicleId);
+    if(v) v.driver = user.name;
+  }
+}
+function syncSessionFromUser(user){
+  if(!state.session || state.session.userId !== user.id) return;
+  state.session.name = user.name;
+  state.session.email = user.email;
+  state.session.title = user.title || (user.role === 'admin' ? 'Fleet Administrator' : 'Driver');
+  state.session.vehicleId = user.vehicleId || null;
+}
+function canDeactivateUser(user){
+  if(!user || !isUserActive(user)) return true;
+  if(state.session && user.id === state.session.userId) return false;
+  if(user.role === 'admin' && activeUsersByRole('admin').length <= 1) return false;
+  return true;
+}
+function availableVehiclesForNewDriver(){
+  const taken = new Set(users.filter(u => u.role === 'driver' && u.vehicleId && isUserActive(u)).map(u => u.vehicleId));
+  return state.vehicles.filter(v => !taken.has(v.id));
+}
+function vehicleSelectOptions(vehicles){
+  return vehicles.length
+    ? vehicles.map(v => '<option value="'+v.id+'">'+esc(v.reg)+' · '+esc(v.make)+'</option>').join('')
+    : '<option value="">No vehicles available</option>';
+}
+function setUserMgmtTab(tab){
+  state.userMgmtTab = tab === 'driver' ? 'driver' : 'admin';
+  renderAll();
+}
+function handleAddUser(e){
+  e.preventDefault();
+  if(!state.session || state.session.role !== 'admin'){
+    showToast('Only administrators can add user accounts');
+    return;
+  }
+  const tab = state.userMgmtTab || 'admin';
+  const banner = document.getElementById('user-add-banner');
+  const show = (msg, ok) => {
+    if(!banner) return;
+    banner.textContent = msg;
+    banner.className = 'set-banner show ' + (ok ? 'ok' : 'err');
+  };
+
+  const name = document.getElementById('user-add-name').value.trim();
+  const email = document.getElementById('user-add-email').value.trim();
+  const pw = document.getElementById('user-add-password').value;
+  const pw2 = document.getElementById('user-add-password2').value;
+
+  if(!name || !email || !pw) return show('Fill in the full name, email and password.', false);
+  if(pw.length < 6) return show('Password must be at least 6 characters.', false);
+  if(pw !== pw2) return show('Passwords do not match.', false);
+  if(findUser(email)) return show('An account with this email already exists.', false);
+
+  if(tab === 'driver'){
+    const vehicleId = document.getElementById('user-add-vehicle').value;
+    if(!vehicleId) return show('Select an assigned vehicle register.', false);
+    const v = vehicleById(vehicleId);
+    if(!v) return show('That vehicle is no longer available.', false);
+    v.driver = name;
+    users.push({
+      id:'u-driver-'+Date.now(),
+      name, email, password:pw,
+      role:'driver', title:'Driver', vehicleId, active:true
+    });
+    show('✓ Driver account created for '+name+'. They can sign in with the Driver tab.', true);
+    showToast('Driver account added for '+name);
+  } else {
+    users.push({
+      id:'u-admin-'+Date.now(),
+      name, email, password:pw,
+      role:'admin', title:'Fleet Administrator', active:true
+    });
+    show('✓ Administrator account created for '+name+'. They can sign in with the Fleet Administrator tab.', true);
+    showToast('Admin account added for '+name);
+  }
+
+  renderCreds();
+  document.getElementById('user-add-name').value = '';
+  document.getElementById('user-add-email').value = '';
+  document.getElementById('user-add-password').value = '';
+  document.getElementById('user-add-password2').value = '';
+  renderAll();
+}
+function toggleUserActive(userId){
+  if(!state.session || state.session.role !== 'admin') return;
+  const user = userById(userId);
+  if(!user) return;
+  if(isUserActive(user) && !canDeactivateUser(user)){
+    if(state.session.userId === userId) showToast('You cannot deactivate your own account while signed in');
+    else showToast('At least one active administrator is required');
+    return;
+  }
+  user.active = !isUserActive(user);
+  renderCreds();
+  showToast(user.name + (user.active ? ' activated' : ' deactivated'));
+  if(document.getElementById('modal-edit-user').classList.contains('show')) renderEditUserBody();
+  renderAll();
+}
+function openEditUser(userId){
+  if(!state.session || state.session.role !== 'admin') return;
+  if(!userById(userId)) return;
+  state.editingUserId = userId;
+  renderEditUserBody();
+  openModal('modal-edit-user');
+}
+function renderEditUserBody(){
+  const user = userById(state.editingUserId);
+  const body = document.getElementById('edit-user-body');
+  const title = document.getElementById('edit-user-title');
+  if(!user || !body) return;
+  title.textContent = 'Edit ' + (user.role === 'admin' ? 'administrator' : 'driver');
+  const roleLabel = user.role === 'admin' ? 'Fleet Administrator' : 'Driver';
+  const vehicleField = user.role === 'driver'
+    ? '<div class="field"><label for="edit-user-vehicle">Assigned vehicle register</label><select id="edit-user-vehicle">'
+      + vehicleOptionsForUser(user).map(v => '<option value="'+v.id+'"'+(v.id === user.vehicleId ? ' selected' : '')+'>'
+      + esc(v.reg)+' · '+esc(v.make)+'</option>').join('')
+      + '</select></div>'
+    : '';
+  const active = isUserActive(user);
+  const canToggle = active ? canDeactivateUser(user) : true;
+  body.innerHTML = '<form onsubmit="saveEditUser(event)">'
+    + '<p style="font-size:0.82rem;color:var(--text-dim);margin:0 0 16px;">Update account details. Leave the password fields blank to keep the current password.</p>'
+    + '<div class="field"><label for="edit-user-name">Full name</label>'
+    + '<input id="edit-user-name" type="text" value="'+esc(user.name)+'" autocomplete="name"></div>'
+    + '<div class="field"><label for="edit-user-email">Email</label>'
+    + '<input id="edit-user-email" type="email" value="'+esc(user.email)+'" autocomplete="email"></div>'
+    + vehicleField
+    + '<div class="field"><label for="edit-user-password">New password</label>'
+    + '<input id="edit-user-password" type="password" placeholder="Leave blank to keep current" autocomplete="new-password"></div>'
+    + '<div class="field"><label for="edit-user-password2">Confirm new password</label>'
+    + '<input id="edit-user-password2" type="password" placeholder="Re-enter new password" autocomplete="new-password"></div>'
+    + '<div class="set-row" style="margin:6px 0 16px;padding-top:14px;border-top:1px solid var(--line);"><div><div class="set-title">Account status</div>'
+    + '<div class="set-desc">'+(active ? roleLabel+' can sign in' : roleLabel+' cannot sign in until reactivated')+'</div></div>'
+    + '<button type="button" class="switch '+(active ? 'on' : '')+'" role="switch" aria-checked="'+active+'"'
+    + (canToggle ? ' onclick="toggleUserActive(\''+user.id+'\')"' : ' disabled style="opacity:.45;cursor:not-allowed;"')
+    + '><span></span></button></div>'
+    + '<div class="modal-actions"><button type="button" class="btn-ghost-block" style="margin-top:0;" onclick="closeModal(\'modal-edit-user\')">Cancel</button>'
+    + '<button type="submit" class="btn-block">Save changes</button></div>'
+    + '</form>';
+}
+function saveEditUser(e){
+  e.preventDefault();
+  if(!state.session || state.session.role !== 'admin') return;
+  const user = userById(state.editingUserId);
+  if(!user) return;
+
+  const name = document.getElementById('edit-user-name').value.trim();
+  const email = document.getElementById('edit-user-email').value.trim();
+  const pw = document.getElementById('edit-user-password').value;
+  const pw2 = document.getElementById('edit-user-password2').value;
+  const prevName = user.name;
+  const prevVehicleId = user.vehicleId;
+
+  if(!name || !email) return showToast('Fill in the full name and email');
+  if(pw && pw.length < 6) return showToast('Password must be at least 6 characters');
+  if(pw && pw !== pw2) return showToast('Passwords do not match');
+  if(findUserExcept(email, user.id)) return showToast('Another account already uses that email');
+
+  user.name = name;
+  user.email = email;
+  if(pw) user.password = pw;
+
+  if(user.role === 'driver'){
+    const vehicleId = document.getElementById('edit-user-vehicle').value;
+    if(!vehicleId) return showToast('Select an assigned vehicle register');
+    user.vehicleId = vehicleId;
+    syncDriverVehicle(user, prevVehicleId, prevName);
+  }
+
+  syncSessionFromUser(user);
+  renderCreds();
+  closeModal('modal-edit-user');
+  showToast('Saved changes for '+user.name);
+  renderAll();
+}
+function handleLogin(e){
+  e.preventDefault();
+  const role = document.querySelector('#login-role-toggle .role-btn.active').dataset.role;
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+  const show = msg => { err.textContent = msg; err.classList.add('show'); document.getElementById('login-success').classList.remove('show'); };
+
+  if(!email || !pw) return show('Enter your email address and password to continue.');
+  const user = findUser(email);
+  if(!user || user.password !== pw) return show('We could not match those details. Use a demo account below or contact your fleet administrator.');
+  if(!isUserActive(user)) return show('This account has been deactivated. Contact your fleet administrator.');
+  if(user.role !== role) return show('That account is a '+(user.role === 'admin' ? 'Fleet Administrator' : 'Driver')+'. Switch the tab above and sign in with the correct role.');
+
+  err.classList.remove('show');
+  signIn(user);
+}
+function signIn(user){
+  if(!isUserActive(user)){
+    showToast('This account has been deactivated');
+    return;
+  }
+  state.session = {
+    userId:user.id, name:user.name, email:user.email, role:user.role,
+    title:user.title || 'Driver', vehicleId:user.vehicleId || null
+  };
+  document.getElementById('login-error').classList.remove('show');
+  document.getElementById('login-password').value = '';
+  if(user.role === 'admin'){
+    state.adminView = 'dashboard'; state.adminParam = null;
+    goTo('screen-admin');
+  } else {
+    state.driverView = 'home';
+    goTo('screen-driver');
+  }
+  renderAll();
+  showToast('Signed in as '+user.name);
+}
+function logout(){
+  const remember = document.getElementById('login-remember').checked;
+  const email = state.session ? state.session.email : '';
+  state.session = null;
+  closeAllPanels();
+  document.getElementById('login-email').value = remember ? email : '';
+  goTo('screen-login');
+  syncHash();
+}
+function togglePw(){
+  const inp = document.getElementById('login-password');
+  const btn = document.getElementById('pw-toggle');
+  if(inp.type === 'password'){ inp.type = 'text'; btn.textContent = 'HIDE'; }
+  else { inp.type = 'password'; btn.textContent = 'SHOW'; }
+}
+function openForgot(){
+  document.getElementById('forgot-email').value = document.getElementById('login-email').value;
+  openModal('modal-forgot');
+}
+function sendReset(){
+  const email = document.getElementById('forgot-email').value.trim();
+  if(!email){ showToast('Enter your email address first'); return; }
+  closeModal('modal-forgot');
+  const banner = document.getElementById('login-success');
+  banner.textContent = '✓ Reset link sent to '+email+'. It expires in 30 minutes.';
+  banner.classList.add('show');
+  document.getElementById('login-error').classList.remove('show');
+  showToast('Password reset link sent');
+}
+function sendSupport(){
+  const msg = document.getElementById('support-msg').value.trim();
+  if(!msg){ showToast('Add a short message first'); return; }
+  document.getElementById('support-msg').value = '';
+  closeModal('modal-support');
+  addNotification('💬','blue','Support request logged', msg.slice(0,60)+(msg.length>60?'…':''), null, null);
+  showToast('Message sent — support responds within 2 hours');
+  renderAll();
+}
+function fillCreds(userId){
+  const u = users.find(x => x.id === userId);
+  if(!u) return;
+  document.getElementById('login-email').value = u.email;
+  document.getElementById('login-password').value = u.password;
+  document.querySelectorAll('#login-role-toggle .role-btn').forEach(b => b.classList.toggle('active', b.dataset.role === u.role));
+  document.getElementById('login-error').classList.remove('show');
+  showToast('Filled in for '+u.name+' ('+(u.role === 'admin' ? 'Admin' : 'Driver')+')');
+}
+function renderCreds(){
+  document.getElementById('creds-body').innerHTML = users.filter(isUserActive).map(u => {
+    const isAdmin = u.role === 'admin';
+    return '<div class="cred-row"><div>'
+      + '<span class="cred-role '+(isAdmin ? 'admin' : 'driver')+'">'+(isAdmin ? 'Admin' : 'Driver')+'</span>'
+      + '<strong>'+esc(u.name)+'</strong>'
+      + '<div class="mono">'+esc(u.email)+'</div></div>'
+      + '<button type="button" onclick="fillCreds(\''+u.id+'\')">Use</button></div>';
+  }).join('');
+}
+
+/* ================= NAVIGATION + ROUTING ================= */
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function setAdminView(view, param){
+  state.adminView = view;
+  state.adminParam = param || null;
+  document.getElementById('sidebar').classList.remove('open');
+  closeAllPanels();
+  renderAll();
+}
+function goVehicle(id){ setAdminView('vehicle-detail', id); }
+function goApproval(reqId){ setAdminView('approval-detail', reqId); }
+function setDriverView(view){
+  state.driverView = view;
+  if(view === 'whatsapp' && state.session) state.waUnread[state.session.vehicleId] = 0;
+  renderAll();
+}
+
+function currentHash(){
+  if(!state.session) return '#/login';
+  if(state.session.role === 'admin'){
+    if(state.adminView === 'vehicle-detail') return '#/admin/vehicle/'+state.adminParam;
+    if(state.adminView === 'approval-detail') return '#/admin/approval/'+state.adminParam;
+    return '#/admin/'+state.adminView;
+  }
+  return '#/driver/'+state.driverView;
+}
+function syncHash(){
+  const h = currentHash();
+  if(location.hash !== h) location.hash = h;
+}
+const ADMIN_VIEWS = ['dashboard','vehicles','service-requests','approvals','reports','notifications','settings','help'];
+const DRIVER_VIEWS = ['home','report','progress','documents','whatsapp'];
+function applyHash(){
+  if(location.hash === currentHash()) return;
+  const parts = location.hash.replace(/^#\/?/,'').split('/').filter(Boolean);
+  const root = parts[0] || 'login';
+  if(!state.session){ goTo('screen-login'); syncHash(); return; }
+  if(root === 'admin' && state.session.role === 'admin'){
+    const seg = parts[1] || 'dashboard';
+    if(seg === 'vehicle' && vehicleById(parts[2])) setAdminView('vehicle-detail', parts[2]);
+    else if(seg === 'approval' && requestById(parts[2])) setAdminView('approval-detail', parts[2]);
+    else if(ADMIN_VIEWS.indexOf(seg) !== -1) setAdminView(seg);
+    else syncHash();
+  } else if(root === 'driver' && state.session.role === 'driver'){
+    const seg = parts[1] || 'home';
+    if(DRIVER_VIEWS.indexOf(seg) !== -1) setDriverView(seg);
+    else syncHash();
+  } else {
+    syncHash();
+  }
+}
+window.addEventListener('hashchange', applyHash);
+
+/* ================= UI PRIMITIVES ================= */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+function toggleProfilePanel(e){
+  if(e) e.stopPropagation();
+  const wrap = document.getElementById('profile-wrap');
+  const panel = document.getElementById('profile-panel');
+  const opening = !panel.classList.contains('show');
+  closeAllPanels();
+  if(opening){
+    wrap.classList.add('open');
+    panel.classList.add('show');
+    renderProfilePanel();
+  }
+}
+function renderProfilePanel(){
+  const panel = document.getElementById('profile-panel');
+  if(!panel.classList.contains('show') || !state.session) return;
+  const s = state.session;
+  panel.innerHTML =
+    '<div class="dp-account">'
+    + '<div class="avatar">'+esc(initials(s.name))+'</div>'
+    + '<div class="who"><strong>'+esc(s.name)+'</strong><small>'+esc(s.email)+'</small><br><small>'+esc(s.title)+'</small></div>'
+    + '</div>'
+    + '<div class="dp-menu">'
+    + '<button onclick="closeAllPanels();setAdminView(\'settings\')">'+ICONS.settings+' My Profile &amp; Settings</button>'
+    + '<button class="danger" onclick="logout()">Log out</button>'
+    + '</div>';
+}
+function toggleBellPanel(e){
+  if(e) e.stopPropagation();
+  const panel = document.getElementById('bell-panel');
+  const opening = !panel.classList.contains('show');
+  closeAllPanels();
+  if(opening){
+    panel.classList.add('show');
+    renderBellPanel();
+  }
+}
+function closeAllPanels(){
+  const b = document.getElementById('bell-panel'); if(b) b.classList.remove('show');
+  const p = document.getElementById('profile-panel'); if(p) p.classList.remove('show');
+  const w = document.getElementById('profile-wrap'); if(w) w.classList.remove('open');
+}
+document.addEventListener('click', e => {
+  if(!e.target.closest('.bell-wrap') && !e.target.closest('.profile-wrap')) closeAllPanels();
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+});
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if(e.target === o) o.classList.remove('show'); });
+});
+document.getElementById('login-role-toggle').querySelectorAll('.role-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#login-role-toggle .role-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+  });
+});
+/* Keeps caret position when a search box triggers a re-render */
+let pendingFocus = null;
+function keepFocus(el){ pendingFocus = {id:el.id, pos:el.selectionStart}; }
+function restoreFocus(){
+  if(!pendingFocus) return;
+  const el = document.getElementById(pendingFocus.id);
+  if(el){
+    el.focus();
+    if(typeof pendingFocus.pos === 'number' && el.setSelectionRange){
+      try { el.setSelectionRange(pendingFocus.pos, pendingFocus.pos); } catch(_){}
+    }
+  }
+  pendingFocus = null;
+}
+
+function downloadText(filename, text){
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 200);
+}
+function pdfEscape(str){
+  return String(str).replace(/[^\x09\x0A\x0D\x20-\x7E]/g, '?').replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+}
+function wrapPdfLines(text, width){
+  const out = [];
+  String(text || '').replace(/\r/g, '').split('\n').forEach(line => {
+    if(!line){ out.push(''); return; }
+    for(let i = 0; i < line.length; i += width) out.push(line.slice(i, i + width));
+  });
+  return out.length ? out : [''];
+}
+function buildPdfBytes(text){
+  const pageW = 595.28, pageH = 841.89, margin = 44, lineH = 13, fontSize = 10;
+  const lines = wrapPdfLines(text, 90);
+  const perPage = Math.max(1, Math.floor((pageH - margin * 2) / lineH));
+  const chunks = [];
+  for(let i = 0; i < lines.length; i += perPage) chunks.push(lines.slice(i, i + perPage));
+  if(!chunks.length) chunks.push(['']);
+
+  const objs = [''];
+  const add = body => { objs.push(body); return objs.length - 1; };
+
+  const fontId = add('<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>');
+  const contentIds = [];
+  chunks.forEach(chunk => {
+    let stream = 'BT\n/F1 ' + fontSize + ' Tf\n';
+    chunk.forEach((line, idx) => {
+      if(idx === 0) stream += margin + ' ' + (pageH - margin) + ' Td\n';
+      else stream += '0 -' + lineH + ' Td\n';
+      stream += '(' + pdfEscape(line) + ') Tj\n';
+    });
+    stream += 'ET';
+    contentIds.push(add('<< /Length ' + new TextEncoder().encode(stream).length + ' >>\nstream\n' + stream + '\nendstream'));
+  });
+
+  const pageIds = contentIds.map((cid, idx) =>
+    add('<< /Type /Page /Parent %%PAGES%% /MediaBox [0 0 ' + pageW + ' ' + pageH + '] /Contents ' + cid + ' 0 R /Resources << /Font << /F1 ' + fontId + ' 0 R >> >> >>')
+  );
+  const pagesId = add('<< /Type /Pages /Kids [' + pageIds.map(id => id + ' 0 R').join(' ') + '] /Count ' + pageIds.length + ' >>');
+  for(let i = 1; i < objs.length; i++){
+    if(objs[i].includes('%%PAGES%%')) objs[i] = objs[i].replace('%%PAGES%%', pagesId + ' 0 R');
+  }
+  const catalogId = add('<< /Type /Catalog /Pages ' + pagesId + ' 0 R >>');
+
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  for(let i = 1; i < objs.length; i++){
+    offsets.push(pdf.length);
+    pdf += i + ' 0 obj\n' + objs[i] + '\nendobj\n';
+  }
+  const xrefPos = pdf.length;
+  pdf += 'xref\n0 ' + objs.length + '\n0000000000 65535 f \n';
+  for(let i = 1; i < objs.length; i++) pdf += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
+  pdf += 'trailer\n<< /Size ' + objs.length + ' /Root ' + catalogId + ' 0 R >>\nstartxref\n' + xrefPos + '\n%%EOF';
+  return pdf;
+}
+function downloadPdf(filename, text){
+  let pdfName = String(filename || 'document.pdf');
+  pdfName = pdfName.replace(/\.(txt|doc)$/i, '.pdf');
+  if(!/\.pdf$/i.test(pdfName)) pdfName += '.pdf';
+  const blob = new Blob([buildPdfBytes(text)], {type:'application/pdf'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = pdfName;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 200);
+}
+
+/* ================= ADMIN NAV ================= */
+const NAV_ITEMS = [
+  {key:'dashboard', label:'Dashboard', icon:'dashboard'},
+  {key:'vehicles', label:'Vehicles', icon:'vehicles'},
+  {key:'service-requests', label:'Service Requests', icon:'service', badgeKey:'sr'},
+  {key:'approvals', label:'Approvals', icon:'approvals', badgeKey:'appr'},
+  {key:'reports', label:'Reports', icon:'reports'},
+  {key:'notifications', label:'Notifications', icon:'notifications', badgeKey:'notif'},
+  {key:'settings', label:'Settings', icon:'settings'},
+  {key:'help', label:'Help & Support', icon:'help'}
+];
+const PAGE_TITLES = {
+  dashboard:'Dashboard', vehicles:'All Vehicles', 'service-requests':'Service Requests',
+  approvals:'Approvals', reports:'Reports', notifications:'Notifications',
+  settings:'Settings', help:'Help & Support',
+  'vehicle-detail':'Vehicle Details', 'approval-detail':'Repair Approval'
+};
+
+function renderSidebar(){
+  const badges = {
+    appr: openRequests().filter(r => r.status === STATUS.AWAITING_APPROVAL).length,
+    notif: state.notifications.filter(n => !n.read).length,
+    sr: openRequests().length
+  };
+  document.getElementById('nav-list').innerHTML = NAV_ITEMS.map(it => {
+    const active = state.adminView === it.key ? 'active' : '';
+    const badge = it.badgeKey && badges[it.badgeKey] ? '<span class="nav-badge">'+badges[it.badgeKey]+'</span>' : '';
+    return '<li class="nav-item '+active+'" onclick="setAdminView(\''+it.key+'\')">'+ICONS[it.icon]+'<span>'+it.label+'</span>'+badge+'</li>';
+  }).join('');
+
+  const dot = document.getElementById('bell-dot');
+  dot.textContent = badges.notif;
+  dot.classList.toggle('zero', badges.notif === 0);
+
+  if(state.session && state.session.role === 'admin'){
+    const n = state.session.name;
+    document.getElementById('admin-name').textContent = n;
+    document.getElementById('admin-name-2').textContent = n;
+    document.getElementById('admin-role-label').textContent = state.session.title;
+    document.getElementById('admin-avatar').textContent = initials(n);
+    document.getElementById('admin-avatar-2').textContent = initials(n);
+  }
+}
+
+function renderBellPanel(){
+  const panel = document.getElementById('bell-panel');
+  if(!panel.classList.contains('show')) return;
+  const items = state.notifications.slice(0,6).map(n => {
+    const [bg,fg] = COLOR_MAP[n.color] || COLOR_MAP.grey;
+    return '<div class="dp-item '+(n.read?'':'unread')+'" onclick="clickNotification(\''+n.id+'\')">'
+      + '<div class="ico" style="background:'+bg+';color:'+fg+';">'+n.icon+'</div>'
+      + '<div><div class="t">'+esc(n.title)+'</div><div class="s">'+esc(n.sub)+'</div></div>'
+      + '<div class="w">'+esc(relTime(n.at))+'</div></div>';
+  }).join('');
+  panel.innerHTML =
+    '<div class="dp-head"><span>Notifications</span><button onclick="markAllRead(event)">Mark all read</button></div>'
+    + '<div class="dp-list">'+(items || '<div style="padding:22px;text-align:center;color:var(--text-dim);font-size:0.8rem;">Nothing new right now.</div>')+'</div>'
+    + '<div class="dp-foot"><button onclick="setAdminView(\'notifications\')">View all notifications</button></div>';
+}
+
+/* ================= ADMIN: TABLES ================= */
+function rowFor(v, req, opts){
+  opts = opts || {};
+  const action = req && req.status === STATUS.AWAITING_APPROVAL
+    ? '<button class="btn-view accent" onclick="goApproval(\''+req.id+'\')">Review</button>'
+    : '<button class="btn-view" onclick="goVehicle(\''+v.id+'\')">View</button>';
+  let row = '<tr>'
+    + '<td class="reg-cell">'+esc(v.reg)+'</td>'
+    + '<td>'+esc(v.driver)+'</td>'
+    + '<td>'+esc(req ? req.issue : 'No open request')+'</td>'
+    + '<td>'+pillFor(req)+'</td>'
+    + '<td>'+miniProgress(req)+'</td>';
+  if(!opts.compact){
+    row += '<td>'+timeOpenCell(req)+'</td>'
+        +  '<td>'+totalAmountCell(req)+'</td>';
+  }
+  return row
+    + '<td>'+esc(etaText(req))+'</td>'
+    + '<td>'+action+'</td>'
+    + '</tr>';
+}
+function tableShell(rows, emptyMsg, opts){
+  opts = opts || {};
+  if(!rows) return '<div class="empty-state">'+esc(emptyMsg)+'</div>';
+  const extraHead = opts.compact ? '' : '<th>Time Open</th><th>Total</th>';
+  return '<div class="table-card"><table>'
+    + '<thead><tr><th>Register</th><th>Driver</th><th>Issue</th><th>Current Stage</th><th>Progress</th>'+extraHead+'<th>Est. Completion</th><th>Action</th></tr></thead>'
+    + '<tbody>'+rows+'</tbody></table></div>'
+    + '<div class="legend">'
+    + '<span><span class="sw" style="background:var(--green);"></span> Completed</span>'
+    + '<span><span class="sw" style="background:var(--blue);"></span> Current Stage</span>'
+    + '<span><span class="sw" style="background:var(--orange);"></span> Awaiting Action</span>'
+    + '<span><span class="sw" style="background:#fff;border:2px solid var(--line);"></span> Pending Stage</span>'
+    + '</div>';
+}
+
+function renderDashboard(){
+  const k = kpis();
+  const cards = [
+    ['vehicles','var(--blue-dim)','var(--blue)', k.total, 'Total Vehicles', "setAdminView('vehicles')"],
+    ['service','var(--orange-dim)','var(--orange)', k.inWorkshop, 'In Service / Workshop', "setAdminView('service-requests')"],
+    ['clock','var(--blue-dim)','var(--blue)', k.awaiting, 'Awaiting Approval', "setAdminView('approvals')"],
+    ['approvals','var(--green-dim)','var(--green)', k.ready, 'Ready for Collection', "filterReady()"]
+  ].map(c => '<div class="kpi-card" onclick="'+c[5]+'"><div class="kpi-icon" style="background:'+c[1]+';color:'+c[2]+';">'+ICONS[c[0]]+'</div>'
+    + '<div><div class="kpi-num">'+c[3]+'</div><div class="kpi-label">'+c[4]+'</div></div></div>').join('');
+
+  const live = openRequests().sort((a,b) => b.createdAt - a.createdAt);
+  const rows = live.map(r => rowFor(vehicleById(r.vehicleId), r, {compact:true})).join('');
+
+  return '<div class="kpi-row">'+cards+'</div>'
+    + '<div class="section-head"><h2>Live Fleet Status</h2><a onclick="setAdminView(\'vehicles\')">View All Vehicles</a></div>'
+    + tableShell(rows, 'Every vehicle is on the road — no open service requests.', {compact:true});
+}
+function filterReady(){ state.vehicleFilter = 'READY'; setAdminView('vehicles'); }
+
+function renderVehicles(){
+  const q = state.vehicleSearch.trim().toLowerCase();
+  const list = state.vehicles.filter(v => {
+    const req = activeRequest(v.id);
+    if(q){
+      const hay = (v.reg+' '+v.driver+' '+v.make+' '+(req ? req.issue+' '+req.reqNo : '')).toLowerCase();
+      if(hay.indexOf(q) === -1) return false;
+    }
+    if(state.vehicleFilter === 'all') return true;
+    if(state.vehicleFilter === 'none') return !req;
+    return req && req.status === state.vehicleFilter;
+  });
+  const options = [['all','All stages'],['none','No active request'],
+    [STATUS.LOGGED,'Logged'],[STATUS.AWAITING_APPROVAL,'Awaiting approval'],[STATUS.REJECTED,'Revised quote pending'],
+    [STATUS.APPROVED,'Approved'],[STATUS.IN_WORKSHOP,'In workshop'],[STATUS.READY,'Ready for collection']]
+    .map(o => '<option value="'+o[0]+'"'+(state.vehicleFilter===o[0]?' selected':'')+'>'+o[1]+'</option>').join('');
+
+  const rows = list.map(v => rowFor(v, activeRequest(v.id))).join('');
+  return '<div class="section-head"><h2>All Vehicles</h2><span style="font-size:0.78rem;color:var(--text-dim);">'+list.length+' of '+state.vehicles.length+' vehicles</span></div>'
+    + '<div class="filter-bar">'
+    + '<input id="veh-search" type="search" placeholder="Search registration, driver, model or SR number" value="'+esc(state.vehicleSearch)+'" oninput="keepFocus(this);state.vehicleSearch=this.value;renderAll();">'
+    + '<select onchange="state.vehicleFilter=this.value;renderAll();">'+options+'</select>'
+    + '</div>'
+    + tableShell(rows, 'No vehicles match that search.', {compact:true});
+}
+
+function renderServiceRequests(){
+  const active = state.srTab === 'active';
+  const list = state.requests
+    .filter(r => active ? r.status !== STATUS.CLOSED : r.status === STATUS.CLOSED)
+    .sort((a,b) => b.createdAt - a.createdAt);
+
+  const rows = list.map(r => {
+    const v = vehicleById(r.vehicleId);
+    return '<tr>'
+      + '<td class="reg-cell">'+esc(r.reqNo)+'</td>'
+      + '<td class="reg-cell">'+esc(v.reg)+'</td>'
+      + '<td>'+esc(r.issue)+'</td>'
+      + '<td>'+esc(r.workshop || 'Not assigned')+'</td>'
+      + '<td>'+statusCell(r)+'</td>'
+      + '<td>'+esc(fmtStamp(r.createdAt))+'</td>'
+      + '<td><button class="btn-view" onclick="goVehicle(\''+v.id+'\')">Open</button></td>'
+      + '</tr>';
+  }).join('');
+
+  return '<div class="section-head"><h2>Service Requests</h2></div>'
+    + '<div class="tabs">'
+    + '<button class="tab-btn '+(active?'active':'')+'" onclick="state.srTab=\'active\';renderAll();">Active ('+state.requests.filter(r=>r.status!==STATUS.CLOSED).length+')</button>'
+    + '<button class="tab-btn '+(!active?'active':'')+'" onclick="state.srTab=\'history\';renderAll();">History ('+state.requests.filter(r=>r.status===STATUS.CLOSED).length+')</button>'
+    + '</div>'
+    + (rows
+      ? '<div class="table-card"><table><thead><tr><th>SR Number</th><th>Register</th><th>Issue</th><th>Workshop</th><th>Status</th><th>Logged</th><th>Action</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+      : '<div class="empty-state">'+(active ? 'No active service requests.' : 'No completed requests yet.')+'</div>');
+}
+
+/* ================= ADMIN: VEHICLE DETAIL ================= */
+function renderVehicleDetail(vehicleId){
+  const v = vehicleById(vehicleId);
+  if(!v) return '<div class="empty-state">Vehicle not found.</div>';
+  const req = activeRequest(v.id) || latestRequest(v.id);
+  const hasOpen = isOpen(req);
+
+  let actions = '';
+  if(hasOpen){
+    if(req.status === STATUS.LOGGED) actions = '<button class="btn-solid-navy" onclick="openAssign(\''+req.id+'\')">Assign Workshop &amp; Request Estimate</button>';
+    else if(req.status === STATUS.AWAITING_APPROVAL) actions = '<button class="btn-solid-navy" onclick="goApproval(\''+req.id+'\')">Review Estimate</button>';
+    else if(req.status === STATUS.REJECTED) actions = '<span class="pill pill-red">AWAITING REVISED QUOTE</span>';
+    else if(req.status === STATUS.APPROVED) actions = '<button class="btn-solid-blue" onclick="checkIntoWorkshop(\''+req.id+'\')">Check In To Workshop</button>';
+    else if(req.status === STATUS.IN_WORKSHOP) actions = '<button class="btn-solid-green" onclick="markReady(\''+req.id+'\')">Mark Ready for Collection</button>';
+    else if(req.status === STATUS.READY) actions = '<button class="btn-solid-green" onclick="markCollected(\''+req.id+'\')">Confirm Collection</button>';
+  }
+
+  const meta = '<div class="vd-meta">'
+    + metaRow('Driver', v.driver)
+    + metaRow('Make / Model', v.make+' ('+v.year+')')
+    + metaRow('Odometer', v.odometer.toLocaleString('en-ZA')+' km')
+    + metaRow('Licence expiry', fmtDate(v.licenceExpiry))
+    + (req ? metaRow('Service Request #', '<span class="mono">'+esc(req.reqNo)+'</span>', true) : '')
+    + (req ? metaRow('Workshop', req.workshop || 'Not assigned') : '')
+    + (req ? metaRow('Fault Reported', req.issue) : '')
+    + (req ? metaRow('Time open', durationOpen(req.createdAt).main) : '')
+    + (req && totalAmount(req) ? metaRow('Total amount', money(totalAmount(req))) : '')
+    + '</div>';
+
+  const statusBlock = '<div class="status-current"><div class="k">Current Status</div>'+pillFor(hasOpen ? req : null)
+    + '<div style="font-size:0.78rem;color:var(--text-dim);margin-top:8px;">'
+    + (hasOpen ? 'Est. completion: <strong style="color:var(--navy);">'+esc(etaText(req))+'</strong>'
+               : 'No open service request for this vehicle.')
+    + '</div></div>';
+
+  const left = '<div class="vd-card"><div class="vd-title">Vehicle: '+esc(v.reg)+'</div>'
+    + '<div class="car-illustration">'+carSVG()+'</div>'+meta+statusBlock
+    + '<div class="vd-action-row">'+actions+'</div></div>';
+
+  const right = (req ? '<div class="timeline-card"><h3>Status Timeline</h3>'+fullTimeline(req)+'</div>' : '')
+    + (req ? evidenceCard(req) : '')
+    + (hasOpen ? workshopSimCard(req) : '')
+    + documentsCard(v, req)
+    + (req ? auditCard(req) : '');
+
+  return '<button class="back-link" onclick="setAdminView(\'dashboard\')">← Back to Dashboard</button>'
+    + '<div class="vd-grid">'+left+'<div>'+right+'</div></div>';
+}
+function metaRow(k, val, raw){
+  return '<div class="vd-meta-row"><span class="k">'+esc(k)+'</span><span class="v">'+(raw ? val : esc(val))+'</span></div>';
+}
+function evidenceCard(req){
+  const catIcon = ICONS[req.category.toLowerCase()] || ICONS.other;
+  const photo = req.photo
+    ? '<img class="ev-photo" src="'+req.photo+'" alt="Driver photo of the fault">'
+    : '<div class="ev-photo-empty">No photo attached by the driver</div>';
+  return '<div class="evidence-card"><h3>Fault report from the driver</h3><div class="ev-grid">'
+    + photo
+    + '<div class="ev-text">'
+    + '<span class="ev-chip">'+catIcon+' '+esc(req.category)+'</span>'
+    + '<span class="ev-chip">Reported '+esc(relTime(req.createdAt))+'</span>'
+    + (req.voiceSecs ? '<span class="ev-chip">'+ICONS.mic+' Voice note '+Math.floor(req.voiceSecs/60)+':'+pad2(req.voiceSecs%60)+'</span>' : '')
+    + '<div style="margin-top:10px;">'+esc(req.description || 'No additional description supplied.')+'</div>'
+    + '<div style="margin-top:8px;color:var(--text-dim);font-size:0.78rem;">Reported by '+esc(req.reportedBy)+'</div>'
+    + '</div></div></div>';
+}
+function workshopSimCard(req){
+  const s = req.status;
+  const btn = (label, fn, on) => '<button class="btn-sim" '+(on ? 'onclick="'+fn+'"' : 'disabled')+'>'+label+'</button>';
+  return '<div class="sim-card"><h3>Workshop actions (simulated)</h3>'
+    + '<p>In production these updates arrive from the workshop management system. Use them here to move '+esc(req.reqNo)+' through the pipeline.</p>'
+    + '<div class="sim-actions">'
+    + btn('Submit estimate', 'openAssign(\''+req.id+'\')', s === STATUS.LOGGED)
+    + btn('Submit revised quote', 'submitRevisedQuote(\''+req.id+'\')', s === STATUS.REJECTED)
+    + btn('Vehicle received — start work', 'checkIntoWorkshop(\''+req.id+'\')', s === STATUS.APPROVED)
+    + btn('Work complete', 'markReady(\''+req.id+'\')', s === STATUS.IN_WORKSHOP)
+    + btn('Driver collected', 'markCollected(\''+req.id+'\')', s === STATUS.READY)
+    + '</div></div>';
+}
+function documentsCard(v, req){
+  const docs = [['estimate','Estimate','PDF','Cost breakdown submitted by the workshop'],
+                ['report','Repair Report','PDF','Work carried out and parts fitted'],
+                ['history','Service History','PDF','Every request logged against this vehicle'],
+                ['licence','Licence & Insurance','PDF','Registration and cover details']];
+  const rows = docs.map(d => {
+    const target = req ? req.id : '';
+    return '<div class="doc-row" onclick="openDoc(\''+d[0]+'\',\''+v.id+'\',\''+target+'\')">'
+      + '<div class="doc-icon'+(d[2]==='PDF'?'':' gen')+'">'+(d[2]==='PDF'?'PDF':ICONS.doc)+'</div>'
+      + '<div class="doc-name">'+d[1]+'<small>'+d[3]+'</small></div></div>';
+  }).join('');
+  return '<div class="docs-card"><h3>Documents</h3>'+rows+'</div>';
+}
+function auditCard(req){
+  const rows = req.audit.slice().sort((a,b) => a.at - b.at).map(a =>
+    '<div class="audit-item"><span class="at">'+esc(fmtStamp(a.at))+'</span>'
+    + '<span><span class="actor">'+esc(a.actor)+'</span> — '+esc(a.text)
+    + (a.emailed ? ' <span style="color:var(--text-dim);">(email sent)</span>' : '')+'</span></div>').join('');
+  return '<div class="audit-card"><h3>Activity trail — '+esc(req.reqNo)+'</h3>'+(rows || '<div class="audit-item">No activity yet.</div>')+'</div>';
+}
+function carSVG(){
+  return '<svg width="150" height="90" viewBox="0 0 200 110" fill="none">'
+    + '<ellipse cx="100" cy="95" rx="80" ry="7" fill="#D7DEE9"/>'
+    + '<path d="M25 70 L35 45 Q40 35 52 35 L140 35 Q152 35 158 45 L172 70 Z" fill="#EAEEF4" stroke="#9AA6BC" stroke-width="2"/>'
+    + '<path d="M60 37 L68 20 L128 20 L140 37 Z" fill="#F5F7FA" stroke="#9AA6BC" stroke-width="2"/>'
+    + '<rect x="25" y="65" width="150" height="16" rx="6" fill="#D3DAE6" stroke="#9AA6BC" stroke-width="2"/>'
+    + '<circle cx="60" cy="82" r="13" fill="#243A5E"/><circle cx="60" cy="82" r="5" fill="#C9D0DE"/>'
+    + '<circle cx="145" cy="82" r="13" fill="#243A5E"/><circle cx="145" cy="82" r="5" fill="#C9D0DE"/>'
+    + '<line x1="90" y1="20" x2="90" y2="37" stroke="#9AA6BC" stroke-width="1.5"/></svg>';
+}
+
+/* ================= ADMIN: APPROVALS ================= */
+function renderApprovalsList(){
+  const waiting = openRequests().filter(r => r.status === STATUS.AWAITING_APPROVAL).sort((a,b) => b.createdAt - a.createdAt);
+  const rejected = openRequests().filter(r => r.status === STATUS.REJECTED);
+
+  const approvalRow = r => {
+    const v = vehicleById(r.vehicleId);
+    const when = relTime(r.createdAt);
+    return '<div class="notif-row" onclick="goApproval(\''+r.id+'\')">'
+      + '<div class="notif-icon" style="background:var(--orange-dim);color:var(--orange);">💰</div>'
+      + '<div class="notif-body">'
+      + '<div class="notif-title">'+esc(v.reg)+'</div>'
+      + '<div class="notif-sub">'+esc(v.driver)+' · '+esc(r.issue)+' · Total '+esc(money(totalAmount(r)))+'</div>'
+      + '</div>'
+      + '<div class="notif-time">'+esc(when)+'</div>'
+      + '</div>';
+  };
+  const rejRow = r => {
+    const v = vehicleById(r.vehicleId);
+    const last = r.rejections[r.rejections.length-1];
+    return '<div class="notif-row" onclick="goVehicle(\''+v.id+'\')">'
+      + '<div class="notif-icon" style="background:var(--red-dim);color:var(--red);">⚠️</div>'
+      + '<div class="notif-body">'
+      + '<div class="notif-title">'+esc(v.reg)+'</div>'
+      + '<div class="notif-sub">'+esc(r.issue)+' · revised quote due · '+esc(last.reason)+'</div>'
+      + '</div>'
+      + '<div class="notif-time">'+esc(relTime(last.at))+'</div>'
+      + '</div>';
+  };
+
+  let html = '<div class="section-head"><h2>Awaiting your approval</h2></div>';
+  html += waiting.length ? waiting.map(approvalRow).join('') : '<div class="empty-state">Nothing waiting for approval right now.</div>';
+  if(rejected.length){
+    html += '<div class="section-head" style="margin-top:26px;"><h2>Rejected — waiting on the workshop</h2></div>'+rejected.map(rejRow).join('');
+  }
+  return html;
+}
+
+function renderApprovalDetail(reqId){
+  const req = requestById(reqId);
+  if(!req) return '<div class="empty-state">Nothing to review.</div>';
+  const v = vehicleById(req.vehicleId);
+  const rows = req.breakdown.map(b => '<tr><td>'+esc(b[0])+'</td><td>'+esc(money(b[1]))+'</td></tr>').join('');
+  const history = req.rejections.length
+    ? '<div class="notes-box"><strong>Previous decisions:</strong><br>'
+      + req.rejections.map(r => esc(fmtStamp(r.at))+' — rejected by '+esc(r.by)+' ('+esc(r.reason)+')').join('<br>')+'</div>'
+    : '';
+  const canDecide = req.status === STATUS.AWAITING_APPROVAL;
+  const actions = canDecide
+    ? '<div class="appr-actions"><button class="btn-reject" onclick="openReject(\''+req.id+'\')">✕ Reject</button>'
+      + '<button class="btn-approve" onclick="approveEstimate(\''+req.id+'\')">✓ Approve</button></div>'
+    : '<div class="appr-actions"><div class="empty-state" style="flex:1;">This estimate is '+esc(STATUS_LABEL[req.status])+
+      '. <a style="color:var(--blue);font-weight:700;cursor:pointer;" onclick="goVehicle(\''+v.id+'\')">Open the vehicle</a> to continue.</div></div>';
+
+  return '<button class="back-link" onclick="setAdminView(\'approvals\')">← Back to Approvals</button>'
+    + '<div class="section-head"><h2>Repair Approval</h2>'+pillFor(req)+'</div>'
+    + '<div class="appr-grid"><div class="appr-card"><h3>Request details</h3><div class="vd-meta">'
+    + metaRow('Register', '<span class="mono">'+esc(v.reg)+'</span>', true)
+    + metaRow('Driver', v.driver)
+    + metaRow('Service Request #', '<span class="mono">'+esc(req.reqNo)+'</span>', true)
+    + metaRow('Workshop', req.workshop || 'Not assigned')
+    + '</div><div class="notes-box"><strong>Notes from workshop:</strong><br>'+esc(req.notes)+'</div>'
+    + '<div class="notes-box"><strong>Driver reported:</strong><br>'+esc(req.description || 'No description supplied.')+'</div>'
+    + history+'</div>'
+    + '<div class="appr-card"><h3>Total Breakdown</h3><table class="est-table">'+rows
+    + '<tr><td>Total</td><td>'+esc(money(req.estimate))+'</td></tr></table>'
+    + '<div class="notes-box">Approving sends the go-ahead to '+esc(req.workshop||'the workshop')
+    + ' and notifies '+esc(req.reportedBy)+' on WhatsApp.</div></div>'
+    + actions+'</div>';
+}
+
+/* ================= ADMIN: NOTIFICATIONS ================= */
+const COLOR_MAP = {
+  blue:['var(--blue-dim)','var(--blue)'],
+  orange:['var(--orange-dim)','var(--orange)'],
+  green:['var(--green-dim)','var(--green)'],
+  red:['var(--red-dim)','var(--red)'],
+  grey:['var(--grey-pill)','var(--grey-pill-text)']
+};
+function renderNotifications(){
+  const rows = state.notifications.map(n => {
+    const [bg,fg] = COLOR_MAP[n.color] || COLOR_MAP.grey;
+    return '<div class="notif-row '+(n.read?'':'unread')+'" onclick="clickNotification(\''+n.id+'\')">'
+      + '<div class="notif-icon" style="background:'+bg+';color:'+fg+';">'+n.icon+'</div>'
+      + '<div class="notif-body"><div class="notif-title">'+esc(n.title)+'</div><div class="notif-sub">'+esc(n.sub)+'</div></div>'
+      + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">'
+      + '<div class="notif-time">'+esc(relTime(n.at))+'</div>'+(n.read?'':'<div class="unread-dot"></div>')+'</div></div>';
+  }).join('');
+  const unread = state.notifications.filter(n => !n.read).length;
+  return '<div class="section-head"><h2>Notifications'+(unread?' ('+unread+' unread)':'')+'</h2><a onclick="markAllRead(event)">Mark all as read</a></div>'
+    + (rows || '<div class="empty-state">No notifications yet.</div>');
+}
+function clickNotification(id){
+  const n = state.notifications.find(x => x.id === id);
+  if(!n) return;
+  n.read = true;
+  closeAllPanels();
+  if(n.requestId && requestById(n.requestId) && requestById(n.requestId).status === STATUS.AWAITING_APPROVAL) goApproval(n.requestId);
+  else if(n.vehicleId) goVehicle(n.vehicleId);
+  else renderAll();
+}
+function markAllRead(e){
+  if(e) e.stopPropagation();
+  state.notifications.forEach(n => n.read = true);
+  showToast('All notifications marked as read');
+  renderAll();
+  renderBellPanel();
+}
+
+/* ================= ADMIN: REPORTS ================= */
+function barChart(title, hint, rows, color){
+  const max = Math.max.apply(null, rows.map(r => r[1]).concat([1]));
+  const body = rows.map(r => {
+    const pct = Math.round((r[1]/max)*100);
+    return '<div class="bar-row"><div class="bl">'+esc(r[0])+'</div>'
+      + '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+(r[2]||color||'var(--blue)')+';"></div></div>'
+      + '<div class="bar-val">'+esc(r[3] || r[1])+'</div></div>';
+  }).join('');
+  return '<div class="chart-card"><h3>'+esc(title)+'</h3><p class="hint">'+esc(hint)+'</p>'
+    + (rows.length ? body : '<div style="color:var(--text-dim);font-size:0.8rem;">No data yet.</div>')+'</div>';
+}
+function turnaroundHours(r){
+  if(!r.logs[0] || !r.logs[3]) return null;
+  return (r.logs[3] - r.logs[0]) / HOUR;
+}
+function renderReports(){
+  const all = state.requests;
+  const completed = all.filter(r => r.logs[3]);
+  const turnarounds = completed.map(turnaroundHours).filter(x => x != null);
+  const avgTurn = turnarounds.length ? (turnarounds.reduce((a,b) => a+b, 0)/turnarounds.length) : 0;
+  const approvedSpend = all.filter(r => [STATUS.APPROVED,STATUS.IN_WORKSHOP,STATUS.READY,STATUS.CLOSED].indexOf(r.status) !== -1)
+    .reduce((s,r) => s+r.estimate, 0);
+  const decided = all.filter(r => r.logs[1] || r.rejections.length);
+  const approvalRate = decided.length ? Math.round((all.filter(r => r.logs[1]).length/decided.length)*100) : 0;
+
+  const stats = '<div class="stat-row">'
+    + statCard(openRequests().length, 'Open service requests')
+    + statCard(avgTurn ? avgTurn.toFixed(1)+' hrs' : '—', 'Average turnaround')
+    + statCard(money(approvedSpend), 'Approved maintenance spend')
+    + statCard(approvalRate+'%', 'Estimates approved first time')
+    + '</div>';
+
+  const byStage = [
+    ['Logged', all.filter(r => r.status === STATUS.LOGGED).length, 'var(--grey-pill-text)'],
+    ['Awaiting approval', all.filter(r => r.status === STATUS.AWAITING_APPROVAL).length, 'var(--orange)'],
+    ['Revised quote due', all.filter(r => r.status === STATUS.REJECTED).length, 'var(--red)'],
+    ['Approved', all.filter(r => r.status === STATUS.APPROVED).length, 'var(--blue)'],
+    ['In workshop', all.filter(r => r.status === STATUS.IN_WORKSHOP).length, 'var(--navy)'],
+    ['Ready for collection', all.filter(r => r.status === STATUS.READY).length, 'var(--green)'],
+    ['Collected', all.filter(r => r.status === STATUS.CLOSED).length, '#0E5A38']
+  ];
+
+  const cats = {};
+  all.forEach(r => { cats[r.category] = (cats[r.category]||0)+1; });
+  const byCategory = Object.keys(cats).sort((a,b) => cats[b]-cats[a]).map(k => [k, cats[k], 'var(--blue)']);
+
+  const shops = {};
+  all.filter(r => r.workshop && r.estimate).forEach(r => { shops[r.workshop] = (shops[r.workshop]||0)+r.estimate; });
+  const byWorkshop = Object.keys(shops).sort((a,b) => shops[b]-shops[a])
+    .map(k => [k, shops[k], 'var(--navy)', money(shops[k])]);
+
+  const turnRows = WORKSHOPS.map(w => {
+    const list = completed.filter(r => r.workshop === w.name).map(turnaroundHours).filter(x => x != null);
+    const avg = list.length ? list.reduce((a,b) => a+b,0)/list.length : 0;
+    return [w.name, Math.round(avg), 'var(--green)', avg ? avg.toFixed(1)+' h' : '—'];
+  }).filter(r => r[1] > 0);
+
+  return '<div class="section-head"><h2>Fleet Reports</h2><a onclick="exportCSV()">Export CSV</a></div>'
+    + '<div class="section-sub">Live figures calculated from every service request in the system.</div>'
+    + stats
+    + '<div class="report-grid">'
+    + barChart('Requests by stage', 'Where every request currently sits in the pipeline.', byStage)
+    + barChart('Faults by category', 'What drivers report most often.', byCategory)
+    + barChart('Maintenance spend by workshop', 'Approved total amount per workshop.', byWorkshop)
+    + barChart('Average turnaround by workshop', 'Hours from fault logged to ready for collection.', turnRows)
+    + '</div>';
+}
+function statCard(v, l){ return '<div class="stat-card"><div class="sv">'+esc(v)+'</div><div class="sl">'+esc(l)+'</div></div>'; }
+function exportCSV(){
+  const head = ['SR Number','Registration','Driver','Category','Issue','Status','Workshop','Total','Logged','Ready','Turnaround (hrs)'];
+  const lines = [head.join(',')];
+  state.requests.forEach(r => {
+    const v = vehicleById(r.vehicleId);
+    const t = turnaroundHours(r);
+    lines.push([r.reqNo, v.reg, v.driver, r.category, r.issue, STATUS_LABEL[r.status], r.workshop||'', r.estimate,
+      r.logs[0] ? fmtStamp(r.logs[0]) : '', r.logs[3] ? fmtStamp(r.logs[3]) : '', t ? t.toFixed(1) : '']
+      .map(x => '"'+String(x).replace(/"/g,'""')+'"').join(','));
+  });
+  downloadText('fleet-pulse-report-'+new Date().toISOString().slice(0,10)+'.csv', lines.join('\n'));
+  showToast('Report exported');
+}
+
+/* ================= ADMIN: SETTINGS ================= */
+function toggleSetting(key){
+  state.settings[key] = !state.settings[key];
+  showToast((state.settings[key] ? 'Enabled' : 'Disabled')+': '+SETTING_LABELS[key]);
+  renderAll();
+}
+const SETTING_LABELS = {whatsapp:'WhatsApp updates', email:'Email notifications', inApp:'In-app alerts'};
+function saveThreshold(){
+  const val = Math.max(0, Number(document.getElementById('set-threshold').value) || 0);
+  state.settings.autoApproveUnder = val;
+  showToast(val ? 'Estimates under '+money(val)+' will approve automatically' : 'Auto-approval switched off');
+  openRequests().filter(r => r.status === STATUS.AWAITING_APPROVAL).forEach(maybeAutoApprove);
+  renderAll();
+}
+function resetDemo(){
+  seedData();
+  resetUsers();
+  state.vehicleSearch = ''; state.vehicleFilter = 'all'; state.srTab = 'active';
+  state.adminView = 'dashboard'; state.adminParam = null; state.driverView = 'home';
+  state.editingUserId = null;
+  showToast('Demo data reset');
+  renderAll();
+}
+function renderUserRow(u){
+  const active = isUserActive(u);
+  const isAdmin = u.role === 'admin';
+  const vehicle = u.vehicleId ? vehicleById(u.vehicleId) : null;
+  const canToggle = active ? canDeactivateUser(u) : true;
+  const toggleLabel = active ? 'Deactivate' : 'Activate';
+  const toggleClass = active ? 'btn-warn' : '';
+  return '<div class="user-row'+(!active ? ' inactive' : '')+'">'
+    + '<div class="user-row-main"><div><span class="cred-role '+(isAdmin ? 'admin' : 'driver')+'">'+(isAdmin ? 'Admin' : 'Driver')+'</span>'
+    + '<strong>'+esc(u.name)+'</strong>'
+    + (state.session && u.id === state.session.userId ? '<span class="user-you">You</span>' : '')
+    + '</div><div class="mono">'+esc(u.email)+'</div>'
+    + (vehicle ? '<div class="user-meta">'+esc(vehicle.reg)+' · '+esc(vehicle.make)+'</div>' : '')
+    + '</div><div class="user-row-side">'
+    + '<span class="user-status '+(active ? 'on' : 'off')+'">'+(active ? 'Active' : 'Inactive')+'</span>'
+    + '<div class="user-actions">'
+    + '<button type="button" onclick="openEditUser(\''+u.id+'\')">Edit</button>'
+    + '<button type="button" class="'+toggleClass+'" onclick="toggleUserActive(\''+u.id+'\')"'+(canToggle ? '' : ' disabled style="opacity:.45;cursor:not-allowed;"')+'>'+toggleLabel+'</button>'
+    + '</div></div></div>';
+}
+function renderAdminUserManagement(){
+  if(!state.session || state.session.role !== 'admin') return '';
+  const tab = state.userMgmtTab || 'admin';
+  const isAdminTab = tab === 'admin';
+  const list = users.filter(u => u.role === tab);
+  const adminCount = users.filter(u => u.role === 'admin').length;
+  const driverCount = users.filter(u => u.role === 'driver').length;
+  const vehicleField = isAdminTab ? '' :
+    '<div class="field span-2"><label for="user-add-vehicle">Assigned vehicle register</label>'
+    + '<select id="user-add-vehicle">'+vehicleSelectOptions(availableVehiclesForNewDriver())+'</select></div>';
+  const emailPlaceholder = isAdminTab ? 'colleague@wesbank.co.za' : 'driver@fleetmail.co.za';
+
+  return '<div class="set-card"><h3>User accounts</h3>'
+    + '<p class="hint">Choose a user type, then manage or add accounts. '+adminCount+' administrators · '+driverCount+' drivers.</p>'
+    + '<div class="role-toggle" style="margin-bottom:14px;">'
+    + '<button type="button" class="role-btn'+(isAdminTab ? ' active' : '')+'" onclick="setUserMgmtTab(\'admin\')">Administrators</button>'
+    + '<button type="button" class="role-btn'+(isAdminTab ? '' : ' active')+'" onclick="setUserMgmtTab(\'driver\')">Drivers</button>'
+    + '</div>'
+    + '<div class="user-list">'
+    + (list.length ? list.map(renderUserRow).join('') : '<div class="empty-state" style="padding:10px 0;">No '+(isAdminTab ? 'administrator' : 'driver')+' accounts yet.</div>')
+    + '</div>'
+    + '<div class="add-user-panel">'
+    + '<div class="user-section-title">Add '+(isAdminTab ? 'administrator' : 'driver')+'</div>'
+    + '<div class="set-banner" id="user-add-banner"></div>'
+    + '<form class="add-user-form" onsubmit="handleAddUser(event)" autocomplete="off">'
+    + '<div class="field"><label for="user-add-name">Full name</label>'
+    + '<input id="user-add-name" type="text" placeholder="'+(isAdminTab ? 'Colleague full name' : 'Driver full name')+'" autocomplete="name"></div>'
+    + '<div class="field"><label for="user-add-email">Email</label>'
+    + '<input id="user-add-email" type="email" placeholder="'+emailPlaceholder+'" autocomplete="email"></div>'
+    + vehicleField
+    + '<div class="field"><label for="user-add-password">Password</label>'
+    + '<input id="user-add-password" type="password" placeholder="At least 6 characters" autocomplete="new-password"></div>'
+    + '<div class="field"><label for="user-add-password2">Confirm password</label>'
+    + '<input id="user-add-password2" type="password" placeholder="Re-enter password" autocomplete="new-password"></div>'
+    + '<button type="submit" class="btn-solid-navy span-2">Add '+(isAdminTab ? 'administrator' : 'driver')+'</button>'
+    + '</form></div></div>';
+}
+function renderSettings(){
+  const row = (key, title, desc) => '<div class="set-row"><div><div class="set-title">'+title+'</div><div class="set-desc">'+desc+'</div></div>'
+    + '<button class="switch '+(state.settings[key]?'on':'')+'" role="switch" aria-checked="'+!!state.settings[key]+'" aria-label="'+title+'" onclick="toggleSetting(\''+key+'\')"><span></span></button></div>';
+  const s = state.session;
+  return '<div class="section-head"><h2>Settings</h2></div>'
+    + '<div class="set-card"><h3>My profile</h3><p class="hint">The account you are signed in with.</p><div class="vd-meta">'
+    + metaRow('Name', s.name) + metaRow('Email', s.email) + metaRow('Role', s.title)
+    + '</div></div>'
+    + renderAdminUserManagement()
+    + '<div class="set-card"><h3>Notification channels</h3><p class="hint">Control how Fleet Pulse pushes status updates. Switching a channel off stops those messages immediately.</p>'
+    + row('whatsapp','WhatsApp updates to drivers','Sends the driver a message at every stage change: logged, approved, in workshop and ready for collection.')
+    + row('email','Email copies to the fleet inbox','Adds an email record to the activity trail for each status change.')
+    + row('inApp','In-app alerts and bell notifications','Shows new events in the notification centre and the sidebar badge.')
+    + '</div>'
+    + '<div class="set-card"><h3>Approval automation</h3><p class="hint">Small estimates can be approved automatically so routine work is not held up waiting for a decision.</p>'
+    + '<div class="inline-form"><div class="field"><label for="set-threshold">Auto-approve estimates under</label>'
+    + '<input id="set-threshold" type="number" min="0" step="100" value="'+state.settings.autoApproveUnder+'"></div>'
+    + '<button class="btn-solid-navy" onclick="saveThreshold()">Save threshold</button></div>'
+    + '<div class="set-desc" style="margin-top:10px;">Currently '+(state.settings.autoApproveUnder
+        ? 'estimates of '+money(state.settings.autoApproveUnder)+' or less are approved automatically.'
+        : 'every estimate needs a manual decision.')+'</div></div>'
+    + '<div class="set-card"><h3>Demo data</h3><p class="hint">Reset the fleet back to its starting state to run the walkthrough again.</p>'
+    + '<button class="btn-outline" onclick="resetDemo()">Reset demo data</button></div>';
+}
+
+/* ================= ADMIN: HELP ================= */
+const FAQS = [
+  ['How do I approve a repair estimate?','Open Approvals in the sidebar, pick the vehicle and press Review. You will see the workshop notes and a full cost breakdown. Approving sends the go-ahead to the workshop and notifies the driver on WhatsApp straight away.'],
+  ['Why can I not see an estimate for a newly reported fault?','A fault starts at Logged. Assign a workshop from the vehicle page and they inspect the vehicle before submitting an estimate. Only then does the request move to Awaiting Approval.'],
+  ['What happens when I reject an estimate?','The workshop is asked for a revised quote and the request is held at Revised Quote Pending. The driver is told a revised quote was requested, so there is no silence while it is sorted out.'],
+  ['How do drivers know what is happening?','Every stage change pushes a WhatsApp message to the driver and updates the Repair Progress screen in their app. They never have to phone in for a status update.'],
+  ['Can I stop the automatic messages?','Yes. Settings has a switch for WhatsApp, email and in-app alerts. Turning a channel off stops those messages for every request.'],
+  ['How is the estimated completion time calculated?','It comes from the workshop job type when the estimate is approved, and updates again when the vehicle is checked in. Drivers and administrators always see the same time.']
+];
+function toggleFaq(i){ state.faqOpen = state.faqOpen === i ? null : i; renderAll(); }
+function submitTicket(){
+  const subject = document.getElementById('help-subject').value;
+  const msg = document.getElementById('help-msg').value.trim();
+  if(!msg){ showToast('Add a short description first'); return; }
+  addNotification('💬','blue','Support ticket '+('TCK'+(1000+Math.floor(Math.random()*9000))), subject+' — '+msg.slice(0,50)+(msg.length>50?'…':''), null, null);
+  showToast('Support ticket raised — expect a reply within 2 hours');
+  renderAll();
+}
+function renderHelp(){
+  const faqs = FAQS.map((f,i) => '<div class="faq-item"><button class="faq-q" onclick="toggleFaq('+i+')">'+esc(f[0])+'<span class="mark">'+(state.faqOpen===i?'−':'+')+'</span></button>'
+    + (state.faqOpen === i ? '<div class="faq-a">'+esc(f[1])+'</div>' : '')+'</div>').join('');
+  return '<div class="section-head"><h2>Help &amp; Support</h2></div>'
+    + '<div class="report-grid"><div>'
+    + '<div class="section-head"><h2 style="font-size:0.86rem;">Frequently asked questions</h2></div>'+faqs+'</div>'
+    + '<div><div class="set-card"><h3>Contact the fleet desk</h3><p class="hint">WesBank Fleet Services · 0861 288 272 · fleetsupport@wesbank.co.za · Mon to Fri, 07:00–18:00</p>'
+    + '<div class="field"><label for="help-subject">Topic</label><select id="help-subject">'
+    + ['An approval or estimate','A vehicle status update','Driver app access','Billing or invoicing','Something else']
+        .map(o => '<option>'+o+'</option>').join('')
+    + '</select></div>'
+    + '<div class="field"><label for="help-msg">How can we help?</label><textarea id="help-msg" rows="4" placeholder="Describe the issue"></textarea></div>'
+    + '<button class="btn-solid-navy" onclick="submitTicket()">Raise support ticket</button></div>'
+    + '<div class="set-card"><h3>Emergency roadside assistance</h3><p class="hint">Available 24/7 for every vehicle on the fleet.</p>'
+    + '<div class="vd-meta">'+metaRow('Roadside assistance','0800 111 222')+metaRow('Accident reporting','0800 111 333')+metaRow('Towing desk','0800 111 444')+'</div></div>'
+    + '</div></div>';
+}
+
+/* ================= DOCUMENTS ================= */
+function buildDoc(kind, vehicleId, reqId){
+  const v = vehicleById(vehicleId);
+  const req = reqId ? requestById(reqId) : null;
+  const line = '-'.repeat(52);
+  const header = 'WESBANK FLEET PULSE\n'+line+'\nVehicle: '+v.reg+'   '+v.make+' ('+v.year+')\nDriver:  '+v.driver+'\nIssued:  '+fmtStamp(new Date())+'\n'+line+'\n\n';
+
+  if(kind === 'estimate'){
+    if(!req || !req.breakdown.length) return {title:'Estimate', text:header+'No estimate has been submitted for this vehicle yet.\nAssign a workshop to request one.'};
+    const rows = req.breakdown.map(b => '  '+b[0].padEnd(28,'.')+' '+money(b[1])).join('\n');
+    return {title:'Estimate — '+req.reqNo, text:header+'REPAIR ESTIMATE\nService request: '+req.reqNo+'\nWorkshop:        '+(req.workshop||'Not assigned')
+      +'\nFault:           '+req.issue+'\n\n'+rows+'\n  '+'TOTAL'.padEnd(28,'.')+' '+money(req.estimate)
+      +'\n\nWorkshop notes:\n'+req.notes+'\n\nStatus: '+STATUS_LABEL[req.status]};
+  }
+  if(kind === 'report'){
+    if(!req || !req.logs[3]) return {title:'Repair Report', text:header+'The repair report is generated once the workshop marks the work complete.'};
+    const rows = req.breakdown.map(b => '  '+b[0].padEnd(28,'.')+' '+money(b[1])).join('\n');
+    const t = turnaroundHours(req);
+    return {title:'Repair Report — '+req.reqNo, text:header+'REPAIR REPORT\nService request: '+req.reqNo+'\nWorkshop:        '+req.workshop
+      +'\nFault reported:  '+req.issue+'\nLogged:          '+fmtStamp(req.logs[0])+'\nCompleted:       '+fmtStamp(req.logs[3])
+      +(t ? '\nTurnaround:      '+t.toFixed(1)+' hours' : '')
+      +'\n\nWork carried out:\n'+rows+'\n  '+'TOTAL'.padEnd(28,'.')+' '+money(req.estimate)
+      +'\n\nWorkshop notes:\n'+req.notes};
+  }
+  if(kind === 'history'){
+    const list = state.requests.filter(r => r.vehicleId === v.id).sort((a,b) => a.createdAt - b.createdAt);
+    const rows = list.length
+      ? list.map(r => '  '+r.reqNo+'  '+fmtStamp(r.createdAt).padEnd(20,' ')+'  '+r.issue.padEnd(26,' ')+'  '+STATUS_LABEL[r.status]+'  '+(r.estimate?money(r.estimate):'—')).join('\n')
+      : '  No service requests logged for this vehicle.';
+    const spend = list.filter(r => r.logs[1]).reduce((s,r) => s+r.estimate, 0);
+    return {title:'Service History — '+v.reg, text:header+'SERVICE HISTORY\n\n'+rows+'\n\nApproved spend to date: '+money(spend)+'\nOdometer: '+v.odometer.toLocaleString('en-ZA')+' km'};
+  }
+  return {title:'Licence & Insurance — '+v.reg, text:header+'LICENCE AND INSURANCE\n\n  Registration ......... '+v.reg
+    +'\n  Licence expiry ....... '+fmtDate(v.licenceExpiry)
+    +'\n  Insurer .............. WesBank Fleet Cover\n  Policy ............... WBF-'+v.id.toUpperCase()+'-2026\n  Excess ............... R 5,000'
+    +'\n  Roadside assistance .. 0800 111 222\n\nThis certificate is generated by Fleet Pulse for demonstration purposes.'};
+}
+function openDoc(kind, vehicleId, reqId){
+  const doc = buildDoc(kind, vehicleId, reqId || null);
+  state.currentDoc = {name:doc.title.replace(/[^\w\- ]/g,'').replace(/\s+/g,'-')+'.pdf', text:doc.text};
+  document.getElementById('modal-doc-title').textContent = doc.title;
+  document.getElementById('modal-doc-body').textContent = doc.text;
+  openModal('modal-doc');
+}
+function downloadCurrentDoc(){
+  if(!state.currentDoc) return;
+  downloadPdf(state.currentDoc.name, state.currentDoc.text);
+  showToast('Downloaded '+state.currentDoc.name);
+}
+
+/* ================= ADMIN MASTER RENDER ================= */
+function renderAdminMain(){
+  document.getElementById('page-title').textContent = PAGE_TITLES[state.adminView] || 'Dashboard';
+  let html = '';
+  switch(state.adminView){
+    case 'dashboard': html = renderDashboard(); break;
+    case 'vehicles': html = renderVehicles(); break;
+    case 'service-requests': html = renderServiceRequests(); break;
+    case 'approvals': html = renderApprovalsList(); break;
+    case 'approval-detail': html = renderApprovalDetail(state.adminParam); break;
+    case 'vehicle-detail': html = renderVehicleDetail(state.adminParam); break;
+    case 'notifications': html = renderNotifications(); break;
+    case 'reports': html = renderReports(); break;
+    case 'settings': html = renderSettings(); break;
+    case 'help': html = renderHelp(); break;
+    default: html = renderDashboard();
+  }
+  document.getElementById('admin-main-pad').innerHTML = html;
+}
+
+/* ================= DRIVER APP ================= */
+function driverVehicle(){ return vehicleById(state.session.vehicleId); }
+
+function renderDriver(){
+  const phone = document.getElementById('driver-phone');
+  const v = driverVehicle();
+  const req = activeRequest(v.id);
+  let inner = '';
+  if(state.driverView === 'home') inner = driverHomeHTML(v, req);
+  else if(state.driverView === 'report') inner = reportFaultHTML(v, req);
+  else if(state.driverView === 'progress') inner = repairProgressHTML(v, req || latestRequest(v.id));
+  else if(state.driverView === 'documents') inner = driverDocumentsHTML(v, req || latestRequest(v.id));
+  else if(state.driverView === 'whatsapp') inner = whatsappHTML(v);
+  phone.innerHTML = inner;
+
+  if(state.driverView !== 'whatsapp'){
+    const unread = state.waUnread[v.id] || 0;
+    const fab = document.createElement('button');
+    fab.className = 'chat-fab';
+    fab.innerHTML = '💬 Updates '+(unread > 0 ? '<span class="badge">'+unread+'</span>' : '');
+    fab.onclick = () => setDriverView('whatsapp');
+    phone.appendChild(fab);
+  } else {
+    scrollWAToBottom();
+  }
+}
+
+function driverBanner(req){
+  if(!req) return ['ok','✓','Safe to drive','No active service request on your vehicle'];
+  switch(req.status){
+    case STATUS.LOGGED: return ['warn','📝','Fault reported — awaiting review','We will notify you once a workshop is assigned'];
+    case STATUS.AWAITING_APPROVAL: return ['warn','⏳','Awaiting approval','Your administrator is reviewing a total of '+money(req.estimate)];
+    case STATUS.REJECTED: return ['warn','↩','Revised quote requested','The workshop is preparing an updated estimate'];
+    case STATUS.APPROVED: return ['info','✓','Approved — workshop assigned','Take your vehicle to '+req.workshop];
+    case STATUS.IN_WORKSHOP: return ['info','🔧','In workshop','Being repaired now — ready '+etaText(req)];
+    case STATUS.READY: return ['ok','✅','Ready for collection!','Collect from '+req.workshop];
+    default: return ['ok','✓','Safe to drive','No active issues'];
+  }
+}
+
+function driverHomeHTML(v, req){
+  const b = driverBanner(req);
+  const shortTag = {LOGGED:'LOGGED', AWAITING_APPROVAL:'APPROVAL', REJECTED:'ON HOLD', APPROVED:'APPROVED', IN_WORKSHOP:'IN WORKSHOP', READY:'READY'};
+  const progressTag = !req ? '<span class="arrow">›</span>'
+    : '<span class="tag"'+(req.status === STATUS.READY ? ' style="background:var(--green);"' : '')+'>'+shortTag[req.status]+'</span>';
+  return '<div class="d-topbar">'
+    + '<div class="d-greet">'+greeting()+',<br><span style="font-weight:800;">'+esc(state.session.name)+'</span><small>'+esc(v.reg)+' · '+esc(v.make)+'</small></div>'
+    + '<div class="d-icons"><button class="logout-btn" onclick="logout()">Log out</button></div></div>'
+    + '<div class="d-body">'
+    + '<div class="rf-label">My Vehicle</div>'
+    + '<div class="vehicle-card"><div class="car-icon">'+ICONS.vehicles+'</div>'
+    + '<div><div class="vname">'+esc(v.reg)+'</div><div class="vsub">'+esc(v.make)+' · '+v.odometer.toLocaleString('en-ZA')+' km</div></div></div>'
+    + '<div class="rf-label">Current Status</div>'
+    + '<div class="status-banner '+b[0]+'"><div class="sb-icon">'+b[1]+'</div><div><div class="sb-title">'+esc(b[2])+'</div><div class="sb-sub">'+esc(b[3])+'</div></div></div>'
+    + '<ul class="action-list">'
+    + '<li class="action-item" onclick="setDriverView(\'report\')">'+ICONS.service+'<span>Report Fault</span><span class="arrow">›</span></li>'
+    + '<li class="action-item" onclick="setDriverView(\'progress\')">'+ICONS.reports+'<span>View Repair Progress</span>'+progressTag+'</li>'
+    + '<li class="action-item" onclick="setDriverView(\'documents\')">'+ICONS.doc+'<span>My Documents</span><span class="arrow">›</span></li>'
+    + '</ul>'
+    + '<button class="btn-emergency" onclick="openEmergency()">🚨 Emergency Assistance</button>'
+    + '</div>';
+}
+
+/* ---- Report fault ---- */
+const CATS = [['Tyres','tyres'],['Engine','engine'],['Brakes','brakes'],['Lights','lights'],['Battery','battery'],['Other','other']];
+function reportFaultHTML(v, req){
+  const topbar = '<div class="d-topbar"><button class="d-back" onclick="setDriverView(\'home\')">← Back</button>'
+    + '<div style="font-weight:800;font-size:0.9rem;">Report a Fault</div><div style="width:44px;"></div></div>';
+
+  if(req){
+    return topbar + '<div class="d-body"><div class="notice-card"><strong>You already have an open request.</strong><br>'
+      + esc(req.reqNo)+' — '+esc(req.issue)+' is currently '+esc(STATUS_LABEL[req.status])+'.'
+      + ' Please follow that request rather than logging a duplicate.</div>'
+      + '<button class="btn-submit" onclick="setDriverView(\'progress\')">View repair progress</button>'
+      + '<button class="btn-ghost-block" onclick="setDriverView(\'home\')">Back to home</button></div>';
+  }
+
+  const tiles = CATS.map(c => '<div class="cat-tile '+(state.rfCategory===c[0]?'selected':'')+'" tabindex="0" role="button" onclick="selectCategory(\''+c[0]+'\')">'+ICONS[c[1]]+'<span>'+c[0]+'</span></div>').join('');
+  const voiceLabel = state.rfRecording ? 'Recording…' : (state.rfVoiceSecs ? 'Voice note '+Math.floor(state.rfVoiceSecs/60)+':'+pad2(state.rfVoiceSecs%60)+' ✓' : 'Record Voice Note');
+  return topbar + '<div class="d-body">'
+    + '<div class="rf-label">What\'s the issue? Select a category</div>'
+    + '<div class="cat-grid">'+tiles+'</div>'
+    + '<div class="add-details-label">Describe what you noticed</div>'
+    + '<textarea class="rf-textarea" id="rf-desc" placeholder="For example: the brake pedal feels soft and there is a squeal when I slow down." oninput="state.rfDesc=this.value">'+esc(state.rfDesc)+'</textarea>'
+    + '<div class="add-details-label">Add more details</div>'
+    + '<div class="detail-row">'
+    + '<label class="detail-btn '+(state.rfPhoto?'active':'')+'" for="photo-input">'+ICONS.camera+'<span>'+(state.rfPhoto?'Photo added ✓':'Take Photo')+'</span></label>'
+    + '<input id="photo-input" type="file" accept="image/*" style="display:none;" onchange="handlePhoto(event)">'
+    + '<button class="detail-btn '+(state.rfVoiceSecs?'active':'')+'" onclick="toggleVoice()" id="voice-btn">'+ICONS.mic+'<span id="voice-label">'+voiceLabel+'</span></button>'
+    + '</div>'
+    + (state.rfPhoto ? '<img class="photo-thumb" src="'+state.rfPhoto+'" alt="Attached photo">' : '')
+    + '<button class="btn-submit" onclick="submitFault()">Submit Fault</button>'
+    + '</div>';
+}
+function selectCategory(label){ state.rfCategory = label; renderAll(); }
+function handlePhoto(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { state.rfPhoto = reader.result; renderAll(); };
+  reader.readAsDataURL(file);
+}
+function toggleVoice(){
+  if(state.rfRecording) return;
+  if(state.rfVoiceSecs){ state.rfVoiceSecs = 0; renderAll(); return; }
+  state.rfRecording = true;
+  let secs = 0;
+  const label = document.getElementById('voice-label');
+  const timer = setInterval(() => {
+    secs++;
+    const el = document.getElementById('voice-label');
+    if(el) el.textContent = 'Recording… 0:'+pad2(secs);
+    if(secs >= 4){
+      clearInterval(timer);
+      state.rfRecording = false;
+      state.rfVoiceSecs = secs;
+      renderAll();
+    }
+  }, 1000);
+  if(label) label.textContent = 'Recording… 0:00';
+}
+function submitFault(){
+  if(!state.rfCategory){ showToast('Please select a category first'); return; }
+  const v = driverVehicle();
+  state.srSeq++; state.reqSeq++;
+  const req = mkRequest({
+    id:'r'+state.reqSeq+'-'+Date.now(),
+    reqNo:'SR'+state.srSeq,
+    vehicleId:v.id,
+    category:state.rfCategory,
+    issue:state.rfCategory === 'Other' ? 'Fault reported by driver' : state.rfCategory+' issue',
+    description:state.rfDesc || 'No additional description supplied.',
+    photo:state.rfPhoto,
+    voiceSecs:state.rfVoiceSecs,
+    status:STATUS.LOGGED,
+    notes:'Awaiting workshop assignment.',
+    createdAt:new Date(),
+    logs:{0:new Date(), 1:null, 2:null, 3:null},
+    reportedBy:state.session.name
+  });
+  logAudit(req, state.session.name, 'Fault reported via the driver app — '+req.category
+    + (req.photo ? ' (photo attached)' : '') + (req.voiceSecs ? ' (voice note attached)' : ''));
+  state.requests.push(req);
+
+  addNotification('🚗','orange','New fault reported', v.reg+' — '+req.category+' · '+req.reqNo, v.id, req.id);
+  pushWA(v.id, 'Hi '+state.session.name.split(' ')[0]+' 👋 We have logged your '+req.category+' report for '+v.reg+'.\nReference '+req.reqNo+'.\nYour fleet administrator will assign a workshop shortly.');
+
+  state.rfCategory = null; state.rfDesc = ''; state.rfPhoto = null; state.rfVoiceSecs = 0;
+  showToast('Fault reported — reference '+req.reqNo);
+  setDriverView('progress');
+}
+
+/* ---- Repair progress ---- */
+function repairProgressHTML(v, req){
+  const topbar = '<div class="d-topbar"><button class="d-back" onclick="setDriverView(\'home\')">← Back</button>'
+    + '<div style="font-weight:800;font-size:0.9rem;">Repair Progress</div><div style="width:44px;"></div></div>';
+  if(!req){
+    return topbar + '<div class="d-body"><div class="notice-card">No service requests have been logged for '+esc(v.reg)+' yet.</div>'
+      + '<button class="btn-submit" onclick="setDriverView(\'report\')">Report a fault</button></div>';
+  }
+  const steps = STAGES.map((s,i) => {
+    const cls = stageClass(req, i);
+    const dot = cls.indexOf('done') === 0 ? '✓' : (i+1);
+    return '<div class="rp-step '+cls+'"><div class="rp-step-line"></div><div class="rp-dot">'+dot+'</div>'
+      + '<div><div class="rp-step-title">'+STAGE_LABELS[i]+'</div><div class="rp-step-time">'+esc(stageTime(req,i))+'</div></div></div>';
+  }).join('');
+
+  const collect = req.status === STATUS.READY
+    ? '<button class="btn-submit" onclick="confirmCollection(\''+req.id+'\')">I have collected my vehicle</button>'
+    : '';
+  const closed = req.status === STATUS.CLOSED
+    ? '<div class="notice-card">This request is closed. Thanks for confirming collection.</div>' : '';
+
+  return topbar + '<div class="d-body">'
+    + '<div class="rp-meta-card">'
+    + '<div class="rp-meta-row"><span class="k">Vehicle</span><span class="v mono">'+esc(v.reg)+'</span></div>'
+    + '<div class="rp-meta-row"><span class="k">Issue</span><span class="v">'+esc(req.issue)+'</span></div>'
+    + '<div class="rp-meta-row"><span class="k">Service Request #</span><span class="v mono">'+esc(req.reqNo)+'</span></div>'
+    + '<div class="rp-meta-row"><span class="k">Workshop</span><span class="v">'+esc(req.workshop || 'Being assigned')+'</span></div>'
+    + (req.estimate ? '<div class="rp-meta-row"><span class="k">Total</span><span class="v">'+esc(money(req.estimate))+'</span></div>' : '')
+    + '</div>'
+    + '<div class="rp-timeline">'+steps+'</div>'
+    + '<div class="eta-card">'+ICONS.clock+'<div><div class="k">Estimated Completion</div><div class="v">'+esc(etaText(req))+'</div></div></div>'
+    + closed + collect
+    + '<button class="btn-ghost-block" onclick="setDriverView(\'whatsapp\')">Open my update thread</button>'
+    + '</div>';
+}
+function confirmCollection(reqId){
+  transition(reqId, STATUS.CLOSED, {actor:state.session.name});
+  showToast('Thanks — your request is now closed');
+  setDriverView('home');
+}
+
+/* ---- Driver documents ---- */
+function driverDocumentsHTML(v, req){
+  const docs = [['estimate','Estimate','PDF'],['report','Repair Report','PDF'],['history','Service History','PDF'],['licence','Licence & Insurance','PDF']];
+  const rows = docs.map(d => '<div class="doc-row" onclick="openDoc(\''+d[0]+'\',\''+v.id+'\',\''+(req?req.id:'')+'\')">'
+    + '<div class="doc-icon'+(d[2]==='PDF'?'':' gen')+'">'+(d[2]==='PDF'?'PDF':ICONS.doc)+'</div>'
+    + '<div class="doc-name">'+d[1]+'</div></div>').join('');
+  return '<div class="d-topbar"><button class="d-back" onclick="setDriverView(\'home\')">← Back</button>'
+    + '<div style="font-weight:800;font-size:0.9rem;">My Documents</div><div style="width:44px;"></div></div>'
+    + '<div class="d-body">'+rows+'</div>';
+}
+
+/* ---- Emergency ---- */
+const EMERGENCIES = [
+  ['roadside','Roadside breakdown','Vehicle will not start or cannot be driven'],
+  ['accident','Accident','Collision or damage that needs reporting'],
+  ['medical','Medical emergency','Injury on the road — dispatch help now']
+];
+function openEmergency(){
+  state.emergencyChoice = 'roadside';
+  renderEmergencyOptions();
+  openModal('modal-emergency');
+}
+function renderEmergencyOptions(){
+  document.getElementById('emergency-options').innerHTML = EMERGENCIES.map(e =>
+    '<button class="opt-tile '+(state.emergencyChoice===e[0]?'selected':'')+'" onclick="state.emergencyChoice=\''+e[0]+'\';renderEmergencyOptions();">'
+    + '<div>'+e[1]+'<small>'+e[2]+'</small></div></button>').join('');
+}
+function dispatchEmergency(){
+  const v = driverVehicle();
+  const choice = EMERGENCIES.find(e => e[0] === state.emergencyChoice);
+  closeModal('modal-emergency');
+  addNotification('🚨','red','EMERGENCY — '+v.reg, choice[1]+' reported by '+state.session.name+' · location shared', v.id, null);
+  pushWA(v.id, '🚨 Emergency request received for '+v.reg+' ('+choice[1]+').\nRoadside assistance has been dispatched and your fleet administrator has been alerted.\nStay with the vehicle in a safe place.');
+  showToast('Assistance dispatched — your administrator has been alerted');
+  renderAll();
+}
+
+/* ---- WhatsApp ---- */
+function whatsappHTML(v){
+  state.waUnread[v.id] = 0;
+  const msgs = (state.waThreads[v.id] || []).map(m =>
+    '<div class="wa-msg'+(m.from==='me'?' me':'')+'">'+esc(m.text)
+    + '<span class="wtime">'+clockOf(m.at)+(m.from==='me'?' ✓✓':'')+'</span></div>').join('');
+  const typing = state.waTyping ? '<div class="wa-typing"><i></i><i></i><i></i></div>' : '';
+  const quick = ['Status?','When will it be ready?','How much?','Which workshop?']
+    .map(q => '<button onclick="quickAsk(\''+q.replace(/'/g,"\\'")+'\')">'+q+'</button>').join('');
+  return '<div class="wa-screen">'
+    + '<div class="wa-topbar"><button class="back" onclick="setDriverView(\'home\')">←</button>'
+    + '<div class="wa-avatar">FP</div>'
+    + '<div><div class="name">WesBank Fleet ✓</div><div class="status">Automated updates · online</div></div></div>'
+    + '<div class="wa-thread" id="wa-thread">'+msgs+typing+'</div>'
+    + '<div class="wa-quick">'+quick+'</div>'
+    + '<div class="wa-inputbar">'
+    + '<input id="wa-input" type="text" placeholder="Type a message" value="'+esc(state.waDraft)+'" '
+    + 'oninput="state.waDraft=this.value" onkeydown="if(event.key===\'Enter\'){event.preventDefault();sendWA();}">'
+    + '<button class="mic-btn" onclick="sendWA()" aria-label="Send">'+(state.waDraft.trim() ? '➤' : ICONS.mic)+'</button>'
+    + '</div></div>';
+}
+function quickAsk(text){ state.waDraft = text; sendWA(); }
+function sendWA(){
+  const v = driverVehicle();
+  const text = (state.waDraft || '').trim();
+  if(!text) return;
+  state.waThreads[v.id].push({from:'me', text, at:new Date()});
+  state.waDraft = '';
+  state.waTyping = true;
+  pendingFocus = {id:'wa-input', pos:0};
+  renderAll();
+  setTimeout(() => {
+    state.waTyping = false;
+    state.waThreads[v.id].push({from:'bot', text:waReply(text, v), at:new Date()});
+    renderAll();
+  }, 900);
+}
+function waReply(text, v){
+  const t = text.toLowerCase();
+  const req = activeRequest(v.id) || latestRequest(v.id);
+  if(/help|menu|option/.test(t))
+    return 'I can help with:\n• Status — where your vehicle is right now\n• ETA — when it will be ready\n• Cost — the estimate value\n• Workshop — who is doing the work\n• Emergency — how to get roadside help';
+  if(/thank|thanks|dankie/.test(t)) return 'A pleasure. We will keep you posted at every stage.';
+  if(!req) return 'There is no active service request for '+v.reg+' at the moment. Report a fault in the Fleet Pulse app and I will track it for you.';
+  if(/how much|cost|price|estimate|quote|rand|r\d/.test(t))
+    return req.estimate ? 'The total for '+req.reqNo+' is '+money(req.estimate)+'.\n'+(req.status===STATUS.AWAITING_APPROVAL ? 'It is with your fleet administrator for approval.' : 'It has already been approved.')
+                        : 'No total has been submitted yet. The workshop will quote once they have inspected '+v.reg+'.';
+  if(/when|ready|eta|long|finish/.test(t))
+    return req.status === STATUS.READY ? v.reg+' is ready for collection right now at '+req.workshop+'.'
+      : 'Estimated completion for '+req.reqNo+' is '+etaText(req)+'. I will message you the moment it changes.';
+  if(/workshop|where|garage|who/.test(t))
+    return req.workshop ? req.workshop+' is handling '+req.reqNo+'. You can reach them on '+((workshopByName(req.workshop)||{}).phone || '011 555 0142')+'.'
+                        : 'A workshop has not been assigned yet. Your fleet administrator is arranging one now.';
+  if(/emergency|breakdown|accident|tow/.test(t))
+    return 'For immediate help use the Emergency Assistance button on your Fleet Pulse home screen, or call roadside assistance on 0800 111 222.';
+  if(/collect|fetch|pick/.test(t))
+    return req.status === STATUS.READY ? 'You can collect '+v.reg+' from '+req.workshop+'. Remember to bring your driver card.'
+                                       : 'Not just yet — '+v.reg+' is currently '+STATUS_LABEL[req.status]+'. I will message you as soon as it is ready.';
+  return v.reg+' — '+req.reqNo+'\nStatus: '+STATUS_LABEL[req.status]+'\nWorkshop: '+(req.workshop||'being assigned')+'\nEstimated completion: '+etaText(req)+'\n\nReply "help" to see what else I can check.';
+}
+function scrollWAToBottom(){
+  const t = document.getElementById('wa-thread');
+  if(t) t.scrollTop = t.scrollHeight;
+}
+
+/* ================= MASTER RENDER ================= */
+function renderAll(){
+  if(!state.session){ goTo('screen-login'); syncHash(); return; }
+  if(state.session.role === 'admin'){
+    goTo('screen-admin');
+    renderSidebar();
+    renderAdminMain();
+    renderBellPanel();
+  } else {
+    goTo('screen-driver');
+    renderDriver();
+  }
+  restoreFocus();
+  syncHash();
+}
+
+/* ================= BOOT ================= */
+seedData();
+renderCreds();
+if(location.hash && location.hash !== '#/login') location.hash = '#/login';
+</script>
+</body>
+</html>
